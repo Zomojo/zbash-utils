@@ -1,5 +1,5 @@
 Summary: Zomojo Bash Scripts Package
-Name: zbash_utils
+Name: zbash-utils
 Version: %{version_base}
 Release: %{version_release}%{org_tag}%{dist}
 License: Copyright Zomojo Pty. Ltd.
@@ -21,18 +21,15 @@ test %{buildroot} != "/" && rm -rf %{buildroot}
 %install
 mkdir -p %{buildroot}/usr/bin
 
-find -name ".svn" | xargs rm -rf 
-
 # install bin components
-cp -rf --no-dereference scripts/* %{buildroot}/usr/bin
-chmod -R 755 %{buildroot}/usr/bin
+cp -f --no-dereference scripts/* %{buildroot}/usr/bin
 
 %clean
 test "%{buildroot}" != "/" && rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root)
-%{_bindir}/*
+/usr/bin/*
 
 
 %changelog
