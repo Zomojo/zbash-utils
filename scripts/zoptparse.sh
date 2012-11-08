@@ -1,73 +1,6 @@
 #!/bin/bash
 # generic option parser for bash scripts using zomojo command line
 # option style.
-#
-# The function zoptparse() converts any option of the form --foo=bar
-# into a bash variable called foo, with the value bar. All variables
-# whose names appear in the array zrequired or the array zoptional
-# are guaranteed to exist.
-#
-# If foo contains a hyphen, this is transliterated into an underscore,
-# to comply with bash naming requirements for variables.
-#
-# ZREQUIRED
-#
-# A variable listed in zrequired must be set on the command line.
-#
-# The format of each entry in zrequired is "foo", which indicates that
-# the variable foo must appear on the command line. An optional help string
-# can be included, by using a | separator, eg "foo|help for foo"
-#
-# ZOPTIONAL
-#
-# A variable listed in zoptional need not be set. It will always have 
-# either an empty string value, or a default value (specified in its declaration)
-# or the value assigned on the command line. 
-# 
-# The format of each entry in zoptional is "foo|default|help string",
-# which indicates that variable foo should be set to default if it isn't
-# set on the command line. Both the default value and the help string are optional,
-# in particular if "foo" only is specified, then the default value defaults to the 
-# empty string
-#
-# If the user calls the option --help or --help=1 then option parsing is
-# aborted and the zoptparse() function returns, with the $help variable set.
-# The programmer can test for -n $help to see if help was called, and act accordingly.
-#
-# All options must be of the form --foo=bar (note equal sign), or else --foo.
-# In the latter case, the value of the variable foo will be set as "foo".
-#
-# example 1:
-# This doesn't use zrequired and zoptional. Therefore, all variables listed
-# on the command line are set (and only those)
-#
-# source "zoptparse.bash"
-# zoptparse $@ || exit 1
-#
-# example 2:
-# This doesn't use zrequired and zoptional. The variable myvar is
-# given a default value, which may be overwritten if and only if the
-# variable appears on the command line
-#
-# myvar=baz
-# zoptparse $@ || exit 1
-# echo $myvar
-#
-# example 3:
-# Full option parsing with required and optional variables. 
-# All variables one, two, three will have values, and
-# program exits if a required variable is missing. Note help handling
-#
-# Help for a single required option occurs after an optional |
-# Help for an optional option occurs after the second optional |
-#
-# zrequired=("one" "two|this is help for option two")
-# zoptional=("three|3|this is option three")
-# zoptparse $@ || exit 1
-# if [ -n "$help" ]; then
-#    echo "usage: ..."
-#    exit 0
-# fi
 
 zrequired=()
 zoptional=()
@@ -176,3 +109,100 @@ function zoptparse()
 
     return 0
 }
+
+: <<=cut
+=pod
+
+=head1 NAME
+
+    zoptparse.sh - zomojo style option processing in bash scripts
+
+=head1 SYNOPSIS
+
+    source '/usr/bin/zoptparse.sh'
+    
+    zrequired=( [STRING]... )
+    zoptional=( [STRING]... )
+
+    zoptparse $@ || exit 1
+
+=head1 DESCRIPTION
+
+The function B<zoptparse> converts any option of the form --foo=bar
+into a bash variable called I<foo>, with the value I<bar>. All variables
+whose names appear in the array B<zrequired> or the array B<zoptional>
+are guaranteed to exist.
+
+If I<foo> contains a hyphen, this is transliterated into an underscore,
+to comply with bash naming requirements for variables.
+
+=head2 ZREQUIRED
+
+A variable listed in B<zrequired> must be set on the command line.
+
+The format of each entry in B<zrequired> is "foo", which indicates that
+the variable foo must appear on the command line. An optional help string
+can be included, by using a | separator, eg "foo|help for foo"
+
+=head2 ZOPTIONAL
+
+A variable listed in B<zoptional> need not be set. It will always have 
+either an empty string value, or a default value (specified in its declaration)
+or the value assigned on the command line. 
+
+The format of each entry in B<zoptional> is "foo|default|help string",
+which indicates that variable foo should be set to default if it isn't
+set on the command line. Both the default value and the help string are optional,
+in particular if "foo" only is specified, then the default value defaults to the 
+empty string
+
+If the user calls the option --help or --help=1 then option parsing is
+aborted and the B<zoptparse> function returns, with the I<help> variable set.
+The programmer can test for -n $help to see if help was called, and act accordingly.
+
+All options must be of the form --foo=bar (note equal sign), or else --foo.
+In the latter case, the value of the variable foo will be set as "foo".
+
+=head1 EXAMPLES
+
+=head3 Example 1
+
+This doesn't use B<zrequired> nor B<zoptional>. Therefore, all variables listed
+on the command line are set (and only those)
+
+ source "/usr/bin/zoptparse.sh"
+ zoptparse $@ || exit 1
+
+=head3 Example 2
+
+This doesn't use B<zrequired> nor B<zoptional>. The variable I<myvar> is
+given a default value, which may be overwritten if and only if the
+variable appears on the command line
+
+ myvar=baz
+ zoptparse $@ || exit 1
+ echo $myvar
+
+=head3 Example 3
+
+Full option parsing with required and optional variables. 
+All variables I<one>, I<two>, I<three> will have values, and
+the program exits if a required variable is missing. Note help handling.
+The function B<zmessage> writes its output to STDERR.
+
+Help for a single required option occurs after an optional |
+Help for an optional option occurs after the second optional |
+
+ zrequired=("one" "two|this is help for option two")
+ zoptional=("three|3|this is option three")
+ zoptparse $@ || exit 1
+ if [ -n "$help" ]; then
+    zmessage "usage: ..."
+    exit 0
+ fi
+
+=head1 SEE ALSO
+
+zsandbox
+
+=cut

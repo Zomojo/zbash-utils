@@ -1,0 +1,196 @@
+#!/bin/bash
+# generic sandbox command runner.
+#
+# The script zsandbox executes a single command on the localhost
+# from within a sandbox in a temporary directory. It can optionally
+# install a package of files before executing the command.
+#
+# zsandbox [--install-package=warehouse:/tmp/blah.tar.gz] command [args]
+
+source "/usr/bin/zoptparse.sh"
+
+zrequired=()
+zoptional=( \
+    "temp-dir|/tmp" \
+    "tarball-if-fail" \
+    "tag|notag" \
+    "install-package" \
+    "echo-stdout" \
+)
+
+zoptparse $@ || exit 1
+
+# with this hack we remove the zoptional switches
+# from the front of the command line
+while true; do
+    case $1 in
+        --temp-dir*)
+            shift 
+            ;;
+        --tarball-if-fail*)
+            shift 
+            ;;
+        --tag*)
+            shift
+            ;;
+        --install-package*)
+            shift
+            ;;
+        --echo-stdout*)
+            shift
+            ;;
+        *) break ;; # unrecognized, must be the command
+    esac
+done
+
+cmd=$1
+shift
+
+if [ -z $cmd ]; then
+    zmessage "failure: usage: zsandbox [--options] command [args]"
+    exit 1
+fi
+
+cmd_path=$(type -p $cmd)
+
+if [ ! -x $cmd_path ]; then
+    zmessage "failure: %s is not an executable file" $cmd
+    exit 1
+fi
+
+temp_cmd="mktemp -d --quiet --tmpdir=$temp_dir zsandbox-$tag.XXXXXXXXXX"
+
+local_temp=$($temp_cmd)
+if [ -z $local_temp ]; then
+    zmessage "failure: cannot create temporary directory"
+    exit 1
+fi
+trap "rm -rf $local_temp" EXIT
+
+if ! pushd $local_temp >/dev/null ; then
+    zmessage "failure: directory %s is inaccessible" $local_temp
+    exit 1
+fi
+
+if [ -n "$install_package" ]; then
+    
+    # wait a random fraction of a second
+    sleep $(echo $RANDOM / 32767 | bc)s
+
+    case $install_package in
+        warehouse:*)
+            rpath=$(echo "${remote_path#*:}" | sed s,^/,,)
+            local_package=$(cache fetch --no-transform "$rpath" 2>/dev/null)
+            if [ -z $local_package ]; then
+                zmessage "failure: $rpath is not in the warehouse"
+                exit 1
+            fi
+            local_package=${CACHE_LOCAL:-/data/work/zlab/md_cache2}/$local_package
+            ;;
+        localhost:*)
+            local_package=${install_package#*}
+            ;;
+        *:*) # other hosts
+            local_package=$(basename ${remote_path#*:})
+            if ! scp $install_package $local_package 2>/dev/null ; then
+                zmessage "failure: scp %s %s" $install_package $local_package
+                exit 1
+            fi
+            ;;
+        *)
+            zmessage "failure: unsupported path %" $install_package
+            exit 1
+            ;;
+    esac
+
+    if ! -e $local_package ; then
+        zmessage "failure: could not install %s" $install_package
+        exit 1
+    fi
+
+    case $local_package in
+        *.tar.gz)
+            if ! tar xfz $local_package 2>/dev/null; then
+                zmessage "failure: could not unpack %s" $local_package
+                exit 1
+            fi
+            rm -f $local_package >/dev/null
+            ;;
+    esac
+    
+fi
+
+printf "%s " ${cmd_path/$local_temp\//} $@ >zsandbox.cmdline
+if ${cmd_path} $@ >zsandbox.stdout 2>zsandbox.stderr </dev/null ; then
+    if [ -n "$echo_stdout" ]; then
+        cat zsandbox.stdout
+    fi
+    exit 0
+fi
+
+# command failed
+rv=$?
+
+popd >/dev/null
+
+if [ -n "$tarball_if_fail" ]; then
+    tarball=${local_temp/zsandbox-/zsandbox-fail-}.tar.gz
+    cd /tmp && \
+        tar cfz $tarball $local_temp \
+        --transform=s/zsandbox-/zsandbox-fail-/ 2>/dev/null && \
+        zmessage "failure: a sandbox command on %s failed: %s" $HOSTNAME $tarball
+fi
+
+exit $rv
+
+: <<=cut
+=pod
+
+=head1 NAME
+
+    zsandbox - run a command in a sandbox on localhost
+
+=head1 SYNOPSIS
+
+    zsandbox [--option]... command [args]...
+
+=head1 DESCRIPTION
+
+The zsandbox script executes a single command with optional arguments
+from inside a temporary directory on localhost. 
+
+=head1 OPTIONS
+
+=over 4
+
+=item --temp-dir 
+
+The prefix of the sandbox directory, defaults to /tmp.
+
+=item --tag
+
+An optional tag name embedded in the sandbox directory for
+identification purposes.
+
+=item --echo-stdout
+
+If set, the command output will be printed on standard output if and
+only if the return code is zero. See also tarball-if-fail.
+
+=item --install-package
+
+A URI indicating a file that should be installed
+into the sandbox prior to running the command. If the file ends in tar.gz,
+it will be automatically extracted.
+
+=item --tarball-if-fail
+
+This option will create a compressed archive of the sandbox in /tmp, in case that the return code of the command is nonzero.
+
+=back
+
+=head1 SEE ALSO
+
+zoptparse.sh
+
+=cut

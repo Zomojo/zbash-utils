@@ -24,6 +24,13 @@ mkdir -p %{buildroot}/usr/bin
 # install bin components
 cp -f --no-dereference scripts/* %{buildroot}/usr/bin
 
+# make man pages
+mkdir -p %{buildroot}/usr/share/man/man1
+for f in scripts/* ; do
+    f1=`basename $f`.1
+    pod2man --center=zbash-utils --release=zbash-utils scripts/$f > %{buildroot}/usr/share/man/man1/$f1       
+done
+
 %clean
 test "%{buildroot}" != "/" && rm -rf %{buildroot}
 
@@ -31,8 +38,12 @@ test "%{buildroot}" != "/" && rm -rf %{buildroot}
 %defattr(-,root,root)
 /usr/bin/*
 
+%doc
+/usr/share/man/man1/*
 
 %changelog
 
+* Thu Nov 8 2012 Laird Breyer <laird@zomojo.com>
+- Added zsandbox and man pages
 * Mon Nov 5 2012 Laird Breyer <laird@zomojo.com>
 - Initial package contains zoptparse.sh
