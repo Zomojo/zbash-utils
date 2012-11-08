@@ -28,7 +28,7 @@ cp -f --no-dereference scripts/* %{buildroot}/usr/bin
 mkdir -p %{buildroot}/usr/share/man/man1
 for f in scripts/* ; do
     f1=`basename $f`.1
-    pod2man --center=zbash-utils --release=zbash-utils scripts/$f > %{buildroot}/usr/share/man/man1/$f1       
+    pod2man --center=zbash-utils --release=zbash-utils $f > %{buildroot}/usr/share/man/man1/$f1       
 done
 
 %clean
