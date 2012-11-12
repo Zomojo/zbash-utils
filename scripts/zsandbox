@@ -51,13 +51,6 @@ if [ -z $cmd ]; then
     exit 1
 fi
 
-cmd_path=$(type -p $cmd)
-
-if [ ! -x $cmd_path ]; then
-    zmessage "failure: %s is not an executable file" $cmd
-    exit 1
-fi
-
 temp_cmd="mktemp -d --quiet --tmpdir=$temp_dir zsandbox-$tag.XXXXXXXXXX"
 
 local_temp=$($temp_cmd)
@@ -118,6 +111,13 @@ if [ -n "$install_package" ]; then
             ;;
     esac
     
+fi
+
+cmd_path=$(type -p $cmd)
+
+if [ ! -x $cmd_path ]; then
+    zmessage "failure: %s is not an executable file" $cmd
+    exit 1
 fi
 
 printf "%s " ${cmd_path/$local_temp\//} $@ >zsandbox.cmdline
