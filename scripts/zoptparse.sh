@@ -124,7 +124,7 @@ function zoptparse()
     zrequired=( [STRING]... )
     zoptional=( [STRING]... )
 
-    zoptparse $@ || exit 1
+    zoptparse "$@" || exit 1
 
 =head1 DESCRIPTION
 
@@ -135,6 +135,9 @@ are guaranteed to exist.
 
 If I<foo> contains a hyphen, this is transliterated into an underscore,
 to comply with bash naming requirements for variables.
+
+Note also that the expression "$@" will properly quote strings with
+embedded spaces.
 
 =head2 ZREQUIRED
 
@@ -171,7 +174,7 @@ This doesn't use B<zrequired> nor B<zoptional>. Therefore, all variables listed
 on the command line are set (and only those)
 
  source "/usr/bin/zoptparse.sh"
- zoptparse $@ || exit 1
+ zoptparse "$@" || exit 1
 
 =head3 Example 2
 
@@ -180,7 +183,7 @@ given a default value, which may be overwritten if and only if the
 variable appears on the command line
 
  myvar=baz
- zoptparse $@ || exit 1
+ zoptparse "$@" || exit 1
  echo $myvar
 
 =head3 Example 3
@@ -195,7 +198,7 @@ Help for an optional option occurs after the second optional |
 
  zrequired=("one" "two|this is help for option two")
  zoptional=("three|3|this is option three")
- zoptparse $@ || exit 1
+ zoptparse "$@" || exit 1
  if [ -n "$help" ]; then
     zmessage "usage: ..."
     exit 0

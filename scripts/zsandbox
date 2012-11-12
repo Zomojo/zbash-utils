@@ -18,7 +18,7 @@ zoptional=( \
     "echo-stdout" \
 )
 
-zoptparse $@ || exit 1
+zoptparse "$@" || exit 1
 
 # with this hack we remove the zoptional switches
 # from the front of the command line
@@ -75,11 +75,11 @@ fi
 if [ -n "$install_package" ]; then
     
     # wait a random fraction of a second
-    sleep $(echo $RANDOM / 32767 | bc)s
+    sleep $(echo "$RANDOM / 32767" | bc -l)s
 
     case $install_package in
         warehouse:*)
-            rpath=$(echo "${remote_path#*:}" | sed s,^/,,)
+            rpath=$(echo "${install_package#*:}" | sed s,^/,,)
             local_package=$(cache fetch --no-transform "$rpath" 2>/dev/null)
             if [ -z $local_package ]; then
                 zmessage "failure: $rpath is not in the warehouse"
@@ -91,7 +91,7 @@ if [ -n "$install_package" ]; then
             local_package=${install_package#*}
             ;;
         *:*) # other hosts
-            local_package=$(basename ${remote_path#*:})
+            local_package=$(basename ${install_package#*:})
             if ! scp $install_package $local_package 2>/dev/null ; then
                 zmessage "failure: scp %s %s" $install_package $local_package
                 exit 1
@@ -152,18 +152,18 @@ exit $rv
 
 =head1 SYNOPSIS
 
-    zsandbox [--option]... command [args]...
+    zsandbox [--option=VALUE]... command [args]...
 
 =head1 DESCRIPTION
 
-The zsandbox script executes a single command with optional arguments
+The B<zsandbox> script executes a single command with optional arguments
 from inside a temporary directory on localhost. 
 
 =head1 OPTIONS
 
 =over 4
 
-=item --temp-dir 
+=item --temp-dir=PREFIX
 
 The prefix of the sandbox directory, defaults to /tmp.
 
@@ -177,7 +177,7 @@ identification purposes.
 If set, the command output will be printed on standard output if and
 only if the return code is zero. See also tarball-if-fail.
 
-=item --install-package
+=item --install-package=URI
 
 A URI indicating a file that should be installed
 into the sandbox prior to running the command. If the file ends in tar.gz,
@@ -188,6 +188,11 @@ it will be automatically extracted.
 This option will create a compressed archive of the sandbox in /tmp, in case that the return code of the command is nonzero.
 
 =back
+
+=head1 RETURN VALUE
+
+B<zsandbox> returns 1 if the command could not be executed, otherwise
+the command return value is emitted.
 
 =head1 SEE ALSO
 
