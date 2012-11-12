@@ -103,12 +103,12 @@ if [ -n "$install_package" ]; then
             ;;
     esac
 
-    if ! -e $local_package ; then
+    if [ ! -e $local_package ] ; then
         zmessage "failure: could not install %s" $install_package
         exit 1
     fi
 
-    case $local_package in
+    case "$local_package" in
         *.tar.gz)
             if ! tar xfz $local_package 2>/dev/null; then
                 zmessage "failure: could not unpack %s" $local_package
