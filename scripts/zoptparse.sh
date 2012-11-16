@@ -110,6 +110,8 @@ function zoptparse()
     return 0
 }
 
+export -f _zexp _zhelp zmessage zoptparse
+
 : <<=cut
 =pod
 
@@ -166,6 +168,15 @@ The programmer can test for -n $help to see if help was called, and act accordin
 All options must be of the form --foo=bar (note equal sign), or else --foo.
 In the latter case, the value of the variable foo will be set as "foo".
 
+=head2 ENVIRONMENT
+
+Sourcing the script exports the following functions to the current shell environment:
+
+ zoptparse()
+ zmessage()
+ _zhelp()
+ _zexp()
+
 =head1 EXAMPLES
 
 =head3 Example 1
@@ -173,7 +184,7 @@ In the latter case, the value of the variable foo will be set as "foo".
 This doesn't use B<zrequired> nor B<zoptional>. Therefore, all variables listed
 on the command line are set (and only those)
 
- source "/usr/bin/zoptparse.sh"
+ declare -Ff zoptparse >/dev/null || source "/usr/bin/zoptparse.sh"
  zoptparse "$@" || exit 1
 
 =head3 Example 2
