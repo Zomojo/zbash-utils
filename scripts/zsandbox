@@ -7,7 +7,7 @@
 #
 # zsandbox [--install-package=warehouse:/tmp/blah.tar.gz] command [args]
 
-source "/usr/bin/zoptparse.sh"
+declare -Ff zoptparse >/dev/null || source "/usr/bin/zoptparse.sh"
 
 zrequired=()
 zoptional=( \
@@ -81,7 +81,7 @@ if [ -n "$install_package" ]; then
             local_package=${CACHE_LOCAL:-/data/work/zlab/md_cache2}/$local_package
             ;;
         localhost:*)
-            local_package=${install_package#*}
+            local_package=${install_package#*:}
             ;;
         *:*) # other hosts
             local_package=$(basename ${install_package#*:})
