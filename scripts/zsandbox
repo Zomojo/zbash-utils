@@ -107,7 +107,6 @@ if [ -n "$install_package" ]; then
                 zmessage "failure: could not unpack %s" $local_package
                 exit 1
             fi
-            rm -f $local_package >/dev/null
             ;;
     esac
     
