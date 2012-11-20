@@ -43,6 +43,8 @@ test "%{buildroot}" != "/" && rm -rf %{buildroot}
 
 %changelog
 
+* Tue Nov 20 2012 Laird Breyer <laird@zomojo.com>
+- Added --random-nice option to zsandbox
 * Thu Nov 8 2012 Laird Breyer <laird@zomojo.com>
 - Added zsandbox and man pages
 * Mon Nov 5 2012 Laird Breyer <laird@zomojo.com>

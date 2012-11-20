@@ -16,6 +16,7 @@ zoptional=( \
     "tag|notag" \
     "install-package" \
     "echo-stdout" \
+    "random-nice" \
 )
 
 zoptparse "$@" || exit 1
@@ -37,6 +38,9 @@ while true; do
             shift
             ;;
         --echo-stdout*)
+            shift
+            ;;
+        --random-nice*)
             shift
             ;;
         *) break ;; # unrecognized, must be the command
@@ -112,6 +116,12 @@ if [ -n "$install_package" ]; then
     
 fi
 
+# nice is only a hint for the kernel, but can dramatically improve 
+# parallel process performance
+if [ -n "$random_nice" ]; then
+    random_nice="nice -n $[ $RANDOM % 16]"
+fi
+
 cmd_path=$(type -p $cmd)
 
 if [ ! -x $cmd_path ]; then
@@ -120,7 +130,7 @@ if [ ! -x $cmd_path ]; then
 fi
 
 printf "%s " ${cmd_path/$local_temp\//} $@ >zsandbox.cmdline
-if ${cmd_path} $@ >zsandbox.stdout 2>zsandbox.stderr </dev/null ; then
+if ${random_nice} ${cmd_path} $@ >zsandbox.stdout 2>zsandbox.stderr </dev/null ; then
     if [ -n "$echo_stdout" ]; then
         cat zsandbox.stdout
     fi
@@ -185,6 +195,11 @@ it will be automatically extracted.
 =item --tarball-if-fail
 
 This option will create a compressed archive of the sandbox in /tmp, in case that the return code of the command is nonzero.
+
+=item --random-nice
+
+This option will run the command with a randomly chosen nice value (in the range +0 to +15). May improve performance when
+several instances of zsandbox are executing simultaneously.
 
 =back
 
