@@ -13,6 +13,7 @@ zrequired=()
 zoptional=( \
     "temp-dir|/tmp" \
     "tarball-if-fail" \
+    "debug" \
     "tag|notag" \
     "install-package" \
     "echo-stdout" \
@@ -30,6 +31,9 @@ while true; do
             shift 
             ;;
         --tarball-if-fail*)
+            shift 
+            ;;
+        --debug*)
             shift 
             ;;
         --tag*)
@@ -63,7 +67,12 @@ if [ -z $local_temp ]; then
     zmessage "failure: cannot create temporary directory"
     exit 1
 fi
-trap "rm -rf $local_temp" EXIT
+
+if [ -z $debug ]; then
+    trap "rm -rf $local_temp" EXIT
+else
+    trap "echo $local_temp 1>&2" EXIT
+fi
 
 if ! pushd $local_temp >/dev/null ; then
     zmessage "failure: directory %s is inaccessible" $local_temp
@@ -201,6 +210,10 @@ This option will create a compressed archive of the sandbox in /tmp, in case tha
 
 This option will run the command with a randomly chosen nice value (in the range +0 to +15). May improve performance when
 several instances of zsandbox are executing simultaneously.
+
+=item --debug
+
+This option prevents cleaning up the sandbox directory to help debugging. Sandbox is typically named /tmp/zsandbox-*
 
 =back
 
