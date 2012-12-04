@@ -18,6 +18,7 @@ zoptional=( \
     "echo-stdout" \
     "random-nice" \
 )
+_zstrict=0
 
 zoptparse "$@" || exit 1
 
