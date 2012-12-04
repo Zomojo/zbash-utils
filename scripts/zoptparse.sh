@@ -4,6 +4,7 @@
 
 zrequired=()
 zoptional=()
+_zstrict=1
 
 # extract the first word from 
 
@@ -80,6 +81,9 @@ function zoptparse()
                 fi
                 if _zexp "${zrequired[@]}" || _zexp "${zoptional[@]}" ; then
                    eval "${opt}='${val}'"
+                elif [ "x${_zstrict}" = "x1" ]; then
+                    zmessage "unrecognized option --${opt}"
+                    return 1
                 fi
                 ;;
             *)
@@ -167,6 +171,9 @@ The programmer can test for -n $help to see if help was called, and act accordin
 
 All options must be of the form --foo=bar (note equal sign), or else --foo.
 In the latter case, the value of the variable foo will be set as "foo".
+
+Unrecognized options cause an error message when _zstrict=1 (this is the default).
+Set _zstrict=0 to silently ignore them instead.
 
 =head2 ENVIRONMENT
 

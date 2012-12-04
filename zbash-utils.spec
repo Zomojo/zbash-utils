@@ -43,6 +43,8 @@ test "%{buildroot}" != "/" && rm -rf %{buildroot}
 
 %changelog
 
+* Tue Dec 4 2012 Laird Breyer <laird@zomojo.com>
+- Added strict options checking in zoptparse.sh
 * Tue Nov 20 2012 Laird Breyer <laird@zomojo.com>
 - Added --random-nice option to zsandbox
 * Thu Nov 8 2012 Laird Breyer <laird@zomojo.com>
