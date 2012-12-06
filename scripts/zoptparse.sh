@@ -29,6 +29,48 @@ function zmessage()
     printf "\n" 1>&2
 }
 
+# make sure $1 exists, optionally specify rpm name as $2
+function zprerequisite()
+{
+    if [ -z $(which $1 2>/dev/null) ]; then
+	    zmessage ": %s : %s is required, please install %s" $(basename $0) $1 $2
+	    exit 1
+    fi
+}
+
+function _zstacktrace()
+{
+    eval echo "$@"
+    local cmd=$(basename $0)
+    local frame=0
+    while echo -n ": $cmd : called by " && caller $frame; do
+        let frame++
+    done
+    exit 1
+}
+
+function _zexceptions()
+{
+    case $1 in
+        0)
+            set +e
+            trap '' ERR
+            ;;
+        1)
+            set -e
+            trap '1>&2 eval echo : $(basename $0) : line ${LINENO} : ${BASH_COMMAND}' ERR
+            ;;
+        2)
+            set -e
+            trap '1>&2 _zstacktrace : $(basename $0) : line ${LINENO} : ${BASH_COMMAND}' ERR
+            ;;
+        *)
+            zmessage "unknown exception level %d" $1
+            exit 1
+            ;;
+    esac
+}
+
 function _zhelp()
 {
     if [ ${#zrequired[@]} -ne 0 ]; then
@@ -51,7 +93,6 @@ function _zhelp()
     fi
 }
 
-
 function zoptparse()
 {
     unset -v optchar opt val OPTIND OPTARG
@@ -64,8 +105,17 @@ function zoptparse()
                 opt=${opt//-/_}
                 if [ "x$opt" = "xhelp" ]; then
                     _zhelp 
+                    if [ "x${_zstrict}" = "x1" ]; then
+                        exit 0
+                    fi
                     eval "help=1"
-                    return 0
+                    return 0 # we don't exit, let user handle this
+                fi
+                if [ "x$opt" = "xman" ]; then
+                    zprerequisite pod2man
+                    local b="Zomojo User Script"
+                    pod2man --center="$b" --release="$b" $(readlink -f $0) | nroff -man | ${PAGER:-cat}
+                    exit 0
                 fi
                 if [ "x$opt" = "x$val" ]; then
                     for w in "${zrequired[@]}"; do
@@ -76,7 +126,8 @@ function zoptparse()
                         fi
                     done
                     # if we're here then opt is an optional var whose
-                    # value wasn't set. This is ok, but make sure dashes are converted to underscores
+                    # value wasn't set. This is ok, but make sure dashes
+                    #  are converted to underscores
                     eval "${val}='$opt'"
                 fi
                 if _zexp "${zrequired[@]}" || _zexp "${zoptional[@]}" ; then
@@ -114,7 +165,7 @@ function zoptparse()
     return 0
 }
 
-export -f _zexp _zhelp zmessage zoptparse
+export -f _zexp _zhelp _zstacktrace _zexceptions zprerequisite zmessage zoptparse
 
 : <<=cut
 =pod
@@ -141,6 +192,9 @@ are guaranteed to exist.
 
 If I<foo> contains a hyphen, this is transliterated into an underscore,
 to comply with bash naming requirements for variables.
+
+Note that options arguments MUST be separated from the option name by
+an equal sign, while a space is not supported.
 
 Note also that the expression "$@" will properly quote strings with
 embedded spaces.
@@ -175,14 +229,39 @@ In the latter case, the value of the variable foo will be set as "foo".
 Unrecognized options cause an error message when _zstrict=1 (this is the default).
 Set _zstrict=0 to silently ignore them instead.
 
+=head2 SPECIAL PREDEFINED OPTIONS
+
+=over 4
+
+=item --help
+
+This option causes the _zhelp() function to be executed, printing all
+the variables defined by zrequired and zoptional. If _zstrict=0 then
+the $help variable is set upon exit from zoptparse(). If _zstrict=1
+(default case), zoptparse() exits 0 after displaying the help.
+
+=item --man
+
+If the current script contains an embedded man page in Perl's I<plain
+old documentation> format, this command will display the page on your
+terminal. See the source code of /usr/bin/zsandbox for an example.
+
+=back
+
+
 =head2 ENVIRONMENT
 
 Sourcing the script exports the following functions to the current shell environment:
 
  zoptparse()
  zmessage()
+ zprerequisite()
  _zhelp()
  _zexp()
+ _zexceptions()
+ _zstacktrace()
+
+These functions may also be used independently. See the examples below.
 
 =head1 EXAMPLES
 
@@ -196,7 +275,7 @@ on the command line are set (and only those)
 
 =head3 Example 2
 
-This doesn't use B<zrequired> nor B<zoptional>. The variable I<myvar> is
+This doesn\'t use B<zrequired> nor B<zoptional>. The variable I<myvar> is
 given a default value, which may be overwritten if and only if the
 variable appears on the command line
 
@@ -221,6 +300,24 @@ Help for an optional option occurs after the second optional |
     zmessage "usage: ..."
     exit 0
  fi
+
+=head3 Example 4
+
+The function zprerequisite exits the current script gracefully if its
+first argument is not available on the system
+
+ zprerequisite perflogread perflogger.x86_64
+
+=head3 Example 5
+
+It is highly recommended to put the following command at the start of your
+script. It causes exception behaviour similar to C++, ie any command which
+returns a nonzero exit status will immediately stop your script, and
+the line will be printed to STDERR. 
+
+ _zexceptions 0 # disable bash exceptions - this is the default
+ _zexceptions 1 # enable bash exceptions - highly recommended
+ _zexceptions 2 # enable bash exceptions with function stack frame - meh
 
 =head1 SEE ALSO
 
