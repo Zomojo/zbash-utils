@@ -55,7 +55,7 @@ done
 cmd=$1
 shift
 
-if [ -z $cmd ]; then
+if [ -z "$cmd" ]; then
     zmessage "failure: usage: zsandbox [--options] command [args]"
     exit 1
 fi
@@ -63,7 +63,7 @@ fi
 temp_cmd="mktemp -d --quiet --tmpdir=$temp_dir zsandbox-$tag.XXXXXXXXXX"
 
 local_temp=$($temp_cmd)
-if [ -z $local_temp ]; then
+if [ -z "$local_temp" ]; then
     zmessage "failure: cannot create temporary directory"
     exit 1
 fi
