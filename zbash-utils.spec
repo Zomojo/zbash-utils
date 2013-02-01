@@ -42,6 +42,8 @@ test "%{buildroot}" != "/" && rm -rf %{buildroot}
 /usr/share/man/man1/*
 
 %changelog
+* Fri Jan 1 2013 Laird Breyer <laird@zomojo.com>
+- Added --use-dir to zsandbox
 * Thu Dec 6 2012 Laird Breyer <laird@zomojo.com>
 - Added exception handling in zoptparse.sh
 * Tue Dec 4 2012 Laird Breyer <laird@zomojo.com>

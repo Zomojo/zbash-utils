@@ -12,6 +12,7 @@ declare -Ff zoptparse >/dev/null || source "/usr/bin/zoptparse.sh"
 zrequired=()
 zoptional=( \
     "temp-dir|/tmp" \
+    "use-dir" \
     "tarball-if-fail" \
     "debug" \
     "tag|notag" \
@@ -29,6 +30,9 @@ while true; do
     case $1 in
         --temp-dir*)
             shift 
+            ;;
+        --use-dir*)
+            shift
             ;;
         --tarball-if-fail*)
             shift 
@@ -60,22 +64,27 @@ if [ -z "$cmd" ]; then
     exit 1
 fi
 
-temp_cmd="mktemp -d --quiet --tmpdir=$temp_dir zsandbox-$tag.XXXXXXXXXX"
+if [ -n "$use_dir" ]; then
+    if mkdir -p "$use_dir"; then
+        local_temp="$use_dir"
+    fi
+else
+    local_temp=$(mktemp -d --quiet --tmpdir=$temp_dir zsandbox-$tag.XXXXXXXXXX)
+fi
 
-local_temp=$($temp_cmd)
 if [ -z "$local_temp" ]; then
     zmessage "failure: cannot create temporary directory"
     exit 1
 fi
 
-if [ -z $debug ]; then
+if [ -z "$debug" ] && [ -z "$use_dir" ]; then
     trap "rm -rf $local_temp" EXIT
 else
     trap "echo $local_temp 1>&2" EXIT
 fi
 
-if ! pushd $local_temp >/dev/null ; then
-    zmessage "failure: directory %s is inaccessible" $local_temp
+if ! pushd "$local_temp" >/dev/null ; then
+    zmessage "failure: directory %s is inaccessible" "$local_temp"
     exit 1
 fi
 
@@ -185,6 +194,11 @@ from inside a temporary directory on localhost.
 =item --temp-dir=PREFIX
 
 The prefix of the sandbox directory, defaults to /tmp.
+
+=item --use-dir=PATH
+
+Instead of generating a random directory name, use PATH
+(and do not delete PATH on exit)
 
 =item --tag
 
