@@ -100,9 +100,9 @@ function zoptparse()
     while getopts ":-:" optchar; do
         case "${optchar}" in
             -)
-                val=${OPTARG#*=}
-                opt=${OPTARG%=$val}
-                opt=${opt//-/_}
+                val="${OPTARG#*=}"
+                opt="${OPTARG%=$val}"
+                opt="${opt//-/_}"
                 if [ "x$opt" = "xhelp" ]; then
                     _zhelp 
                     if [ "x${_zstrict}" = "x1" ]; then
@@ -121,7 +121,7 @@ function zoptparse()
                     for w in "${zrequired[@]}"; do
                         w=$(echo $w | cut -f1 -d\|)
                         if [ "x$opt" = "x$w" ]; then
-                            zmessage "$0 accepts only options of the form --xxx=yyy"
+                            zmessage "$0 accepts only options of the form --xxx=yyy (no spaces in yyy)"
                             return 1
                         fi
                     done
@@ -138,7 +138,7 @@ function zoptparse()
                 fi
                 ;;
             *)
-                zmessage "$0 accepts only options of the form --xxx=yyy" 
+                zmessage "$0 accepts only options of the form --xxx=yyy (no spaces in yyy)" 
                 return 1
                 ;;
         esac
@@ -194,7 +194,8 @@ If I<foo> contains a hyphen, this is transliterated into an underscore,
 to comply with bash naming requirements for variables.
 
 Note that options arguments MUST be separated from the option name by
-an equal sign, while a space is not supported.
+an equal sign, while a space is not supported. Also, spaces inside an 
+option argument aren't supported either.
 
 Note also that the expression "$@" will properly quote strings with
 embedded spaces.
@@ -318,6 +319,13 @@ the line will be printed to STDERR.
  _zexceptions 0 # disable bash exceptions - this is the default
  _zexceptions 1 # enable bash exceptions - highly recommended
  _zexceptions 2 # enable bash exceptions with function stack frame - meh
+
+=head4 Example 6
+
+Do not try to parse options of the form
+
+ --foo blah # fails space instead of = is not supported
+ --foo="blah blah" # fails space inside an option argument is not supported
 
 =head1 SEE ALSO
 
