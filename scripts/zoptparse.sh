@@ -38,6 +38,16 @@ function zprerequisite()
     fi
 }
 
+# sleeps until the number of current jobs dips below a threshold
+function zmaxjobs()
+{
+    if [ -n "$1" ]; then
+        while [ $(jobs -p | wc -l) -ge "$1" ]; do
+            sleep 1
+        done
+    fi
+}
+
 function _zstacktrace()
 {
     eval echo "$@"
@@ -165,7 +175,7 @@ function zoptparse()
     return 0
 }
 
-export -f _zexp _zhelp _zstacktrace _zexceptions zprerequisite zmessage zoptparse
+export -f _zexp _zhelp _zstacktrace _zexceptions zprerequisite zmaxjobs zmessage zoptparse
 
 : <<=cut
 =pod
@@ -256,6 +266,7 @@ Sourcing the script exports the following functions to the current shell environ
 
  zoptparse()
  zmessage()
+ zmaxjobs()
  zprerequisite()
  _zhelp()
  _zexp()
@@ -320,12 +331,31 @@ the line will be printed to STDERR.
  _zexceptions 1 # enable bash exceptions - highly recommended
  _zexceptions 2 # enable bash exceptions with function stack frame - meh
 
-=head4 Example 6
+=head3 Example 6
 
 Do not try to parse options of the form
 
  --foo blah # fails space instead of = is not supported
  --foo="blah blah" # fails space inside an option argument is not supported
+
+=head3 Example 7
+
+If you run several jobs in parallel using &, you can throttle the number of 
+simultaneous processes using zmaxjobs as follows:
+
+ source /usr/bin/zoptparse.sh
+
+ function do_something()
+ {
+    for j in $(seq 0 3); do echo $1 $j ; sleep 1; done
+ }
+
+ for i in $(seq 0 5); do
+    do_something $i &
+    zmaxjobs 5 # sleep until the number of jobs dips below 5
+ done
+
+ wait # until all processes are finished
 
 =head1 SEE ALSO
 
