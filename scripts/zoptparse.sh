@@ -140,11 +140,15 @@ function zoptparse()
                     #  are converted to underscores
                     eval "${val}='$opt'"
                 fi
-                if _zexp "${zrequired[@]}" || _zexp "${zoptional[@]}" ; then
-                   eval "${opt}='${val}'"
+                if [ "x${_zstrict}" = "x2" ]; then
+                    eval "${opt}='${val}'"
                 elif [ "x${_zstrict}" = "x1" ]; then
-                    zmessage "unrecognized option --${opt}"
-                    return 1
+                    if _zexp "${zrequired[@]}" || _zexp "${zoptional[@]}" ; then
+                        eval "${opt}='${val}'"
+                    else
+                        zmessage "unrecognized option --${opt}"
+                        return 1
+                    fi
                 fi
                 ;;
             *)
@@ -204,8 +208,12 @@ If I<foo> contains a hyphen, this is transliterated into an underscore,
 to comply with bash naming requirements for variables.
 
 Note that options arguments MUST be separated from the option name by
-an equal sign, while a space is not supported. Also, spaces inside an 
-option argument aren't supported either.
+an equal sign, while a space is not supported. 
+
+The first non-option argument marks the end of option processing.
+Spaces inside an option
+argument are supported IF quoted properly, otherwise option processing
+will likely stop.
 
 Note also that the expression "$@" will properly quote strings with
 embedded spaces.
@@ -238,7 +246,8 @@ All options must be of the form --foo=bar (note equal sign), or else --foo.
 In the latter case, the value of the variable foo will be set as "foo".
 
 Unrecognized options cause an error message when _zstrict=1 (this is the default).
-Set _zstrict=0 to silently ignore them instead.
+Set _zstrict=0 to silently ignore them instead or _zstrict=2 to accept them as
+valid variables.
 
 =head2 SPECIAL PREDEFINED OPTIONS
 
@@ -279,18 +288,20 @@ These functions may also be used independently. See the examples below.
 
 =head3 Example 1
 
-This doesn't use B<zrequired> nor B<zoptional>. Therefore, all variables listed
-on the command line are set (and only those)
+This doesn't use B<zrequired> nor B<zoptional>, and has the default value 
+of _zstrict=1. Therefore, all options of the form --foo=bar listed
+on the command line will cause an error (unrecognized option). See the next example.
 
  declare -Ff zoptparse >/dev/null || source "/usr/bin/zoptparse.sh"
  zoptparse "$@" || exit 1
 
 =head3 Example 2
 
-This doesn\'t use B<zrequired> nor B<zoptional>. The variable I<myvar> is
+This doesn\'t use B<zrequired> nor B<zoptional>, but _zstrict=2. The variable I<myvar> is
 given a default value, which may be overwritten if and only if the
 variable appears on the command line
 
+ _zstrict=2
  myvar=baz
  zoptparse "$@" || exit 1
  echo $myvar
@@ -333,10 +344,11 @@ the line will be printed to STDERR.
 
 =head3 Example 6
 
-Do not try to parse options of the form
+Spaces are not supported instead of =, but are supported if quoted properly
 
  --foo blah # fails space instead of = is not supported
- --foo="blah blah" # fails space inside an option argument is not supported
+ --foo="blah blah" # succeeds now foo is "blah blah"
+ --foo=blah blah # succeeds now foo is "blah" and other blah is ignored
 
 =head3 Example 7
 
