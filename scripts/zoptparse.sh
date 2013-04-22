@@ -179,7 +179,10 @@ function zoptparse()
     return 0
 }
 
+# export symbols. This is not needed if you source zoptparse.sh explicitly
+# but handy if you don't
 export -f _zexp _zhelp _zstacktrace _zexceptions zprerequisite zmaxjobs zmessage zoptparse
+export zrequired zoptional _zstrict 
 
 : <<=cut
 =pod
