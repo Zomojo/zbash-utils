@@ -62,6 +62,22 @@ exit 0
 ./test_unspecified2 --myvar=foo
 _unspecified2
 
+# check that an optional variable is set properly if _zstrict=0
+cat <<_strict0 > test_strict0
+#!/bin/bash
+source "$1"
+
+zoptional=("date")
+_zstrict=0
+zoptparse "\$@" || exit 1
+
+[ "\$date" = "20130415" ] || exit 1
+
+exit 0
+
+./test_strict0 --date=20130415
+_strict0
+
 # check that a required value is read properly 
 cat <<_required0 > test_required0
 #!/bin/bash

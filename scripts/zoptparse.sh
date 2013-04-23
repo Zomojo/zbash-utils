@@ -140,15 +140,18 @@ function zoptparse()
                     #  are converted to underscores
                     eval "${val}='$opt'"
                 fi
-                if [ "x${_zstrict}" = "x2" ]; then
+                # now eval the var
+                # 1) if  zrequired or zoptional always eval
+                # 2) if _zstrict=1 and not zrequired or zoptional, fail
+                # 3) if _zstrict=2 and not zrequired or zoptional, eval anyway
+                # 4) if _zstrict=0 and not zrequired or zoptional, silently ignore
+                if _zexp "${zrequired[@]}" || _zexp "${zoptional[@]}" ; then
                     eval "${opt}='${val}'"
                 elif [ "x${_zstrict}" = "x1" ]; then
-                    if _zexp "${zrequired[@]}" || _zexp "${zoptional[@]}" ; then
-                        eval "${opt}='${val}'"
-                    else
-                        zmessage "unrecognized option --${opt}"
-                        return 1
-                    fi
+                    zmessage "unrecognized option --${opt}"
+                    return 1
+                elif [ "x${_zstrict}" = "x2" ]; then
+                    eval "${opt}='${val}'"
                 fi
                 ;;
             *)
