@@ -187,6 +187,13 @@ function zoptparse()
 export -f _zexp _zhelp _zstacktrace _zexceptions zprerequisite zmaxjobs zmessage zoptparse
 export zrequired zoptional _zstrict 
 
+# we force exceptions (set -e with nice error messages) by default
+# but only for NON-INTERACTIVE shells (otherwise your terminal will close
+# when the first command with a nonzero exit code returns, d'oh). 
+if [ -z "$PS1" ]; then
+    _zexceptions 1
+fi
+
 : <<=cut
 =pod
 
@@ -254,6 +261,16 @@ In the latter case, the value of the variable foo will be set as "foo".
 Unrecognized options cause an error message when _zstrict=1 (this is the default).
 Set _zstrict=0 to silently ignore them instead or _zstrict=2 to accept them as
 valid variables.
+
+=head2 ERRORS/EXCEPTIONS
+
+The act of sourcing zoptparse.sh turns on error trapping via "set -e",
+I<provided the shell is non-interactive>.
+If any subsequent command exits with a nonzero status, your script
+is aborted and the offending command line is printed. To turn this
+behaviour off, use the function call
+
+ _zexceptions 0
 
 =head2 SPECIAL PREDEFINED OPTIONS
 
@@ -347,6 +364,10 @@ the line will be printed to STDERR.
  _zexceptions 0 # disable bash exceptions - this is the default
  _zexceptions 1 # enable bash exceptions - highly recommended
  _zexceptions 2 # enable bash exceptions with function stack frame - meh
+
+In recent versions of zoptparse, the second line above is run by default.
+Thus, you don't have to do anything unless you want to turn I<off> error
+trapping.
 
 =head3 Example 6
 
