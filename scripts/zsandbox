@@ -154,10 +154,10 @@ if ${random_nice} ${cmd_path} $@ >zsandbox.stdout 2>zsandbox.stderr </dev/null ;
         cat zsandbox.stdout
     fi
     exit 0
+else
+    # command failed
+    rv=$?
 fi
-
-# command failed
-rv=$?
 
 popd >/dev/null
 
