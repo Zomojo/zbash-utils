@@ -5,6 +5,8 @@
 zrequired=()
 zoptional=()
 _zstrict=1
+_zonexit=()
+_zonkill=()
 
 # extract the first word from 
 
@@ -48,6 +50,27 @@ function zmaxjobs()
     fi
 }
 
+# return a tempfile and make sure it gets cleaned up on exit or error
+# see manpage below for usage
+function ztempfile()
+{
+    [ -n "$1" ]
+    local label="${2:-zoptparse}"
+    local tmpfile=$(mktemp -q --tmpdir="/tmp" "${label}.XXXXXXXXXX")
+    _zonexit=( "[ -f '$tmpfile' ] && rm -f '$tmpfile'" "${_zonexit[@]}")
+    eval "$1=$tmpfile"
+}
+
+# return a tempdir and make sure it gets cleaned up on exit or error
+function ztempdir()
+{
+    [ -n "$1" ]
+    local label="${2:-zoptparse}"
+    local tmpdir=$(mktemp -d -q --tmpdir="/tmp" "${label}.XXXXXXXXXX")
+    _zonexit=( "[ -d '$tmpdir' ] && rm -rf '$tmpdir' && cd ${PWD}" "${_zonexit[@]}")
+    eval "$1=$tmpdir"
+}
+
 function _zstacktrace()
 {
     eval echo "$@"
@@ -57,6 +80,18 @@ function _zstacktrace()
         let frame++
     done
     exit 1
+}
+
+function _zcleaner()
+{
+    if [ -z "$debug" ]; then
+        for cmd in "${_zonexit[@]}"; do eval "$cmd" ; done
+    fi
+}
+
+function _zreaper()
+{
+    for cmd in "${_zonkill[@]}"; do eval "$cmd" ; done
 }
 
 function _zexceptions()
@@ -79,6 +114,11 @@ function _zexceptions()
             exit 1
             ;;
     esac
+
+    _zonkill=( "kill -s TERM 0" )
+
+    trap '_zcleaner' EXIT
+    trap '_zreaper' HUP INT TERM QUIT PIPE
 }
 
 function _zhelp()
@@ -184,8 +224,8 @@ function zoptparse()
 
 # export symbols. This is not needed if you source zoptparse.sh explicitly
 # but handy if you don't
-export -f _zexp _zhelp _zstacktrace _zexceptions zprerequisite zmaxjobs zmessage zoptparse
-export zrequired zoptional _zstrict 
+export -f _zexp _zhelp _zstacktrace _zexceptions zprerequisite zmaxjobs zmessage ztempfile ztempdir zoptparse
+export zrequired zoptional _zstrict _zonexit _zonkill
 
 # we force exceptions (set -e with nice error messages) by default
 # but only for NON-INTERACTIVE shells (otherwise your terminal will close
@@ -262,6 +302,18 @@ Unrecognized options cause an error message when _zstrict=1 (this is the default
 Set _zstrict=0 to silently ignore them instead or _zstrict=2 to accept them as
 valid variables.
 
+=head2 TEMPORARY FILES
+
+The commands B<ztempfile> and B<ztempdir> can be used to obtain a
+temporary file name of the required type that is also cleaned up
+automatically upon exit from the script, except if $debug is nonempty.
+The cleanup commands are specified in the special arrays B<_zonexit>
+and B<_zonkill>, and are executed as signal traps. You should add your
+commands to those arrays if you need to do further processing.
+
+Note B<_zonkill> automatically sends SIGTERM to the current process group, which should
+kill all child processes. This is only called when an interrupt signal is received.
+
 =head2 ERRORS/EXCEPTIONS
 
 The act of sourcing zoptparse.sh turns on error trapping via "set -e",
@@ -300,6 +352,8 @@ Sourcing the script exports the following functions to the current shell environ
  zmessage()
  zmaxjobs()
  zprerequisite()
+ ztempfile()
+ ztempdir()
  _zhelp()
  _zexp()
  _zexceptions()
@@ -395,6 +449,20 @@ simultaneous processes using zmaxjobs as follows:
  done
 
  wait # until all processes are finished
+
+=head3 Example 8
+
+Here is how to obtain a temporary file name:
+
+ source /usr/bin/zoptparse.sh
+ ztempfile tmp1 # evaluates tmp1=/tmp/zoptparse.XXXX
+ ztempfile tmp1 "label # evaluates tmp1=/tmp/label.XXXX
+ ztempdir tmp2 "label" # evaluates tmp2=/tmp/label.XXXX
+ pushd $tmp2
+ 
+Upon exit, both tmp1 and tmp2 are deleted automatically and the current 
+working directory is reset to what it was before the pushd, 
+unless $debug is nonempty. 
 
 =head1 SEE ALSO
 
