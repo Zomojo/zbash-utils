@@ -44,7 +44,7 @@ function zprerequisite()
 function zmaxjobs()
 {
     if [ -n "$1" ]; then
-        while [ $(jobs -p | wc -l) -ge "$1" ]; do
+        while [ $(jobs -p | wc -l) -gt "$1" ]; do
             sleep 1
         done
     fi
@@ -57,8 +57,12 @@ function ztempfile()
     [ -n "$1" ]
     local label="${2:-zoptparse}"
     local tmpfile=$(mktemp -q --tmpdir="/tmp" "${label}.XXXXXXXXXX")
-    _zonexit=( "[ -f '$tmpfile' ] && rm -f '$tmpfile'" "${_zonexit[@]}")
     eval "$1=$tmpfile"
+    if [ -z "${_zdebug}" ]; then
+        eval " _zonexit+=( \"[ -f '$tmpfile' ] && rm -f '$tmpfile'\" ) "
+    else
+        zmessage "$tmpfile" # leave file around
+    fi
 }
 
 # return a tempdir and make sure it gets cleaned up on exit or error
@@ -67,8 +71,12 @@ function ztempdir()
     [ -n "$1" ]
     local label="${2:-zoptparse}"
     local tmpdir=$(mktemp -d -q --tmpdir="/tmp" "${label}.XXXXXXXXXX")
-    _zonexit=( "[ -d '$tmpdir' ] && rm -rf '$tmpdir' && cd ${PWD}" "${_zonexit[@]}")
     eval "$1=$tmpdir"
+    if [ -z "${_zdebug}" ]; then
+        eval " _zonexit+=( \"[ -d '$tmpdir' ] && rm -rf '$tmpdir' && cd ${PWD}\" ) "
+    else
+        zmessage "$tmpdir"
+    fi
 }
 
 function _zstacktrace()
@@ -84,7 +92,7 @@ function _zstacktrace()
 
 function _zcleaner()
 {
-    if [ -z "$debug" ]; then
+    if [ -z "${_zdebug}" ]; then
         for cmd in "${_zonexit[@]}"; do eval "$cmd" ; done
     fi
 }
@@ -114,11 +122,6 @@ function _zexceptions()
             exit 1
             ;;
     esac
-
-    _zonkill=( "kill -s TERM 0" )
-
-    trap '_zcleaner' EXIT
-    trap '_zreaper' HUP INT TERM QUIT PIPE
 }
 
 function _zhelp()
@@ -143,9 +146,27 @@ function _zhelp()
     fi
 }
 
+function _zinit()
+{
+# we force exceptions (set -e with nice error messages) by default
+# but only for NON-INTERACTIVE shells (otherwise your terminal will close
+# when the first command with a nonzero exit code returns, d'oh). 
+    if [ -z "$PS1" ]; then
+        _zexceptions 1
+        _zonkill=( "kill -s TERM 0" )
+    fi
+
+    trap '_zcleaner' EXIT
+    trap '_zreaper' HUP INT TERM QUIT PIPE
+}
+
 function zoptparse()
 {
+    # only zoptparse is always called, so initialize here
+    _zinit
+
     unset -v optchar opt val OPTIND OPTARG
+
    # create and initialize foo=bar whenever we see --foo=bar 
     while getopts ":-:" optchar; do
         case "${optchar}" in
@@ -224,15 +245,8 @@ function zoptparse()
 
 # export symbols. This is not needed if you source zoptparse.sh explicitly
 # but handy if you don't
-export -f _zexp _zhelp _zstacktrace _zexceptions zprerequisite zmaxjobs zmessage ztempfile ztempdir zoptparse
+export -f _zexp _zhelp _zstacktrace _zexceptions _zinit _zreaper _zcleaner zprerequisite zmaxjobs zmessage ztempfile ztempdir zoptparse
 export zrequired zoptional _zstrict _zonexit _zonkill
-
-# we force exceptions (set -e with nice error messages) by default
-# but only for NON-INTERACTIVE shells (otherwise your terminal will close
-# when the first command with a nonzero exit code returns, d'oh). 
-if [ -z "$PS1" ]; then
-    _zexceptions 1
-fi
 
 : <<=cut
 =pod
@@ -306,7 +320,7 @@ valid variables.
 
 The commands B<ztempfile> and B<ztempdir> can be used to obtain a
 temporary file name of the required type that is also cleaned up
-automatically upon exit from the script, except if $debug is nonempty.
+automatically upon exit from the script, except if the variable B<_zdebug> is nonempty.
 The cleanup commands are specified in the special arrays B<_zonexit>
 and B<_zonkill>, and are executed as signal traps. You should add your
 commands to those arrays if you need to do further processing.
@@ -358,6 +372,9 @@ Sourcing the script exports the following functions to the current shell environ
  _zexp()
  _zexceptions()
  _zstacktrace()
+ _zinit()
+ _zreaper()
+ _zcleaner()
 
 These functions may also be used independently. See the examples below.
 
@@ -462,7 +479,7 @@ Here is how to obtain a temporary file name:
  
 Upon exit, both tmp1 and tmp2 are deleted automatically and the current 
 working directory is reset to what it was before the pushd, 
-unless $debug is nonempty. 
+unless B<_zdebug> is nonempty. 
 
 =head1 SEE ALSO
 
