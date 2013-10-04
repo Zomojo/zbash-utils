@@ -206,7 +206,9 @@ function zoptparse()
                 # 2) if _zstrict=1 and not zrequired or zoptional, fail
                 # 3) if _zstrict=2 and not zrequired or zoptional, eval anyway
                 # 4) if _zstrict=0 and not zrequired or zoptional, silently ignore
-                if _zexp "${zrequired[@]}" || _zexp "${zoptional[@]}" ; then
+                if [ "x$opt" = "xdebug" ]; then
+                    _zdebug="debug"
+                elif _zexp "${zrequired[@]}" || _zexp "${zoptional[@]}" ; then
                     eval "${opt}='${val}'"
                 elif [ "x${_zstrict}" = "x1" ]; then
                     zmessage "unrecognized option --${opt}"
