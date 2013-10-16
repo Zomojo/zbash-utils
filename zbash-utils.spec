@@ -16,9 +16,11 @@ zbash-utils provides useful functions for bash shell scripts.
 %setup
 
 %build
+cd %projectdir
 test %{buildroot} != "/" && rm -rf %{buildroot}
 
 %install
+cd %projectdir
 mkdir -p %{buildroot}/usr/bin
 
 # install bin components
