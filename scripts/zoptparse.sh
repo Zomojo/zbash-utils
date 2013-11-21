@@ -254,7 +254,7 @@ function zoptparse()
 
 # export symbols. This is not needed if you source zoptparse.sh explicitly
 # but handy if you don't
-export -f _zexp _zhelp _zstacktrace _zexceptions _zinit _zreaper _zcleaner zprerequisite zmaxjobs zmessage ztempfile ztempdir zoptparse
+export -f _zexp _zhelp _zstacktrace _zexceptions _zinit _zreaper _zcleaner zprerequisite zmaxjobs zmessage zerror ztempfile ztempdir zoptparse
 export zrequired zoptional _zstrict _zonexit _zonkill
 
 : <<=cut
