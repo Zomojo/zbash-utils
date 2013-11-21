@@ -44,6 +44,8 @@ test "%{buildroot}" != "/" && rm -rf %{buildroot}
 /usr/share/man/man1/*
 
 %changelog
+* Fri Nov 22 2013 Laird Breyer <laird@zomojo.com>
+- Added zerror, which is like zmessage but returns 1 (for exiting scripts)
 * Thu Sep 19 2013 Laird Breyer <laird@zomojo.com>
 - Added ztempfile and ztempdir commands, also child process cleanup
 * Fri Jan 1 2013 Laird Breyer <laird@zomojo.com>

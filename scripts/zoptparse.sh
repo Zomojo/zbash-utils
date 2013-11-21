@@ -31,6 +31,13 @@ function zmessage()
     printf "\n" 1>&2
 }
 
+function zerror()
+{
+    printf "$@" 1>&2
+    printf "\n" 1>&2
+    return 1 # triggers exit when set -e 
+}
+
 # make sure $1 exists, optionally specify rpm name as $2
 function zprerequisite()
 {
@@ -366,6 +373,7 @@ Sourcing the script exports the following functions to the current shell environ
 
  zoptparse()
  zmessage()
+ zerror()
  zmaxjobs()
  zprerequisite()
  ztempfile()
