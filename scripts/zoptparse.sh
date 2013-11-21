@@ -33,6 +33,7 @@ function zmessage()
 
 function zerror()
 {
+    printf ": error : "
     printf "$@" 1>&2
     printf "\n" 1>&2
     return 1 # triggers exit when set -e 
