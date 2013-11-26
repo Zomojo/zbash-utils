@@ -39,6 +39,19 @@ function zerror()
     return 1 # triggers exit when set -e 
 }
 
+# use like zrecord cmd.txt stdout.txt "some command"
+# it records the command string into cmd.txt and the output into stdout.txt
+# while the command's stderr still gets printed as usual
+function zrecord()
+{
+    local tagfile=$1
+    local stdoutfile=$2
+    shift 2
+    printf "%s " $@ >> $tagfile
+    printf "\n" >> $tagfile
+    $@ > $stdoutfile || zerror "command failed"
+}
+
 # make sure $1 exists, optionally specify rpm name as $2
 function zprerequisite()
 {
@@ -255,7 +268,7 @@ function zoptparse()
 
 # export symbols. This is not needed if you source zoptparse.sh explicitly
 # but handy if you don't
-export -f _zexp _zhelp _zstacktrace _zexceptions _zinit _zreaper _zcleaner zprerequisite zmaxjobs zmessage zerror ztempfile ztempdir zoptparse
+export -f _zexp _zhelp _zstacktrace _zexceptions _zinit _zreaper _zcleaner zprerequisite zmaxjobs zmessage zerror zrecord ztempfile ztempdir zoptparse
 export zrequired zoptional _zstrict _zonexit _zonkill
 
 : <<=cut
@@ -491,6 +504,17 @@ Here is how to obtain a temporary file name:
 Upon exit, both tmp1 and tmp2 are deleted automatically and the current 
 working directory is reset to what it was before the pushd, 
 unless B<_zdebug> is nonempty. 
+
+=head3 Example 9
+
+The zrecord function can be used to record a command string, execute it, and
+save its output. For example
+
+ zrecord /tmp/cmd.txt /tmp/stdout.txt echo "hello there"
+ cat /tmp/cmd.txt
+ echo hello there
+ cat /tmp/stdout.txt
+ hello there
 
 =head1 SEE ALSO
 
