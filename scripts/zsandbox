@@ -108,7 +108,7 @@ if [ -n "$install_package" ]; then
             ;;
         *:*) # other hosts
             local_package=$(basename ${install_package#*:})
-            if ! scp $install_package $local_package 2>/dev/null ; then
+            if ! scp -qB $install_package $local_package 2>/dev/null ; then
                 zmessage "failure: scp %s %s" $install_package $local_package
                 exit 1
             fi
