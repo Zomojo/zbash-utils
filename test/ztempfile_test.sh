@@ -3,7 +3,7 @@
 set -e
 
 if [ -z "$1" ]; then
-    echo "usage: $0 PATH/TO/zoptparse.sh"
+    echo "usage: $0 FULL/PATH/TO/zoptparse.sh"
     exit 1
 fi
 
