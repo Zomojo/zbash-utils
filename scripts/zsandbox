@@ -93,8 +93,9 @@ if [ -n "$install_package" ]; then
         warehouse:*)
             rpath=$(echo "${install_package#*:}" | sed s,^/,,)
             local_package=$(cache fetch --no-transform "$rpath" 2>/dev/null)
-            [ -f "$local_package" ] || zerror "failure: $rpath is not in the warehouse"
+            [ -n "$local_package" ] || zmessage "failure: %s is not in the warehouse" "$rpath"
             local_package="${CACHE_LOCAL:-/data/work/zlab/md_cache2}/$local_package"
+            [ -f "$local_package" ] || zerror "failure: %s was not fetched correctly" "$rpath"
             ;;
         localhost:*)
             local_package="${install_package#*:}"
