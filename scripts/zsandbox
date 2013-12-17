@@ -70,7 +70,7 @@ shift
 [ -n "$cmd" ] || zerror "failure: usage: zsandbox [--options] command [args]"
 
 if [ -n "$fail_if_disk_full_above" ]; then
-    DU=$(df -l /tmp | grep ^/ | tr -s ' ' | cut -d' ' -f5 | sed 's/%//')
+    DU=$(df -lP /tmp | grep ^/ | tr -s ' ' | cut -d' ' -f5 | sed 's/%//')
     [ $DU -le $fail_if_disk_full_above ] || zerror "failure: /tmp is full (%d > %d)" "$DU" "$fail_if_disk_full_above"
 fi
 
