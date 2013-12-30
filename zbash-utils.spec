@@ -44,6 +44,8 @@ test "%{buildroot}" != "/" && rm -rf %{buildroot}
 /usr/share/man/man1/*
 
 %changelog
+* Tue Dec 30 2013 Laird Breyer <laird@zomojo.com>
+- longer error messages in zsandbox
 * Tue Dec 17 2013 Laird Breyer <laird@zomojo.com>
 - changes to zsandbox implementation
 * Tue Nov 26 2013 Laird Breyer <laird@zomojo.com>

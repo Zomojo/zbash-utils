@@ -136,7 +136,7 @@ if $random_nice "$cmd_path" $@ >zsandbox.stdout 2>zsandbox.stderr </dev/null ; t
 else
     # command failed
     rv=$?
-    head -5 zsandbox.stderr | cut -c -128 1>&2
+    head -5 zsandbox.stderr 
 fi
 
 popd >/dev/null
