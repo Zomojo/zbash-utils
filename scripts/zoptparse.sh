@@ -94,7 +94,7 @@ function ztempdir()
     local tmpdir=$(mktemp -d -q --tmpdir="/tmp" "${label}.XXXXXXXXXX")
     eval "$1=$tmpdir"
     if [ -z "${_zdebug}" ]; then
-        eval " _zonexit+=( \"[ -d '$tmpdir' ] && rm -rf '$tmpdir' && cd ${PWD}\" ) "
+        eval " _zonexit+=( \"[ -d '$tmpdir' ] && rm -rf '$tmpdir' && cd ${PWD} 2>/dev/null || true\" ) "
     else
         zmessage "$tmpdir"
     fi
