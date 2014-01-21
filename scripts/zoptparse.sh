@@ -14,7 +14,7 @@ _zonkill=()
 function _zexp() 
 {
     for v in "$@"; do
-        local fullname=$(echo $v | cut -f1 -d\| | sed 's/-/_/g' | grep ^$opt)
+        local fullname=$(echo "$v" | cut -f1 -d\| | sed 's/-/_/g' | grep "^$opt")
         if [ "x${fullname}" != "x" ]; then
             opt="${fullname}"
             return 0
@@ -77,7 +77,8 @@ function ztempfile()
 {
     [ -n "$1" ]
     local label="${2:-zoptparse}"
-    local tmpfile=$(mktemp -q --tmpdir="/tmp" "${label}.XXXXXXXXXX")
+    local prefix="${3:-/tmp}"
+    local tmpfile=$(mktemp -q --tmpdir="$prefix" "${label}.XXXXXXXXXX")
     eval "$1=$tmpfile"
     if [ -z "${_zdebug}" ]; then
         eval " _zonexit+=( \"[ -f '$tmpfile' ] && rm -f '$tmpfile'\" ) "
@@ -91,7 +92,8 @@ function ztempdir()
 {
     [ -n "$1" ]
     local label="${2:-zoptparse}"
-    local tmpdir=$(mktemp -d -q --tmpdir="/tmp" "${label}.XXXXXXXXXX")
+    local prefix="${3:-/tmp}"
+    local tmpdir=$(mktemp -d -q --tmpdir="$prefix" "${label}.XXXXXXXXXX")
     eval "$1=$tmpdir"
     if [ -z "${_zdebug}" ]; then
         eval " _zonexit+=( \"[ -d '$tmpdir' ] && rm -rf '$tmpdir' && cd ${PWD} 2>/dev/null || true\" ) "
@@ -193,7 +195,7 @@ function zoptparse()
         case "${optchar}" in
             -)
                 val="${OPTARG#*=}"
-                opt="${OPTARG%=$val}"
+                opt="${OPTARG%=*}"
                 opt="${opt//-/_}"
                 if [ "x$opt" = "xhelp" ]; then
                     _zhelp 
@@ -497,7 +499,8 @@ Here is how to obtain a temporary file name:
 
  source /usr/bin/zoptparse.sh
  ztempfile tmp1 # evaluates tmp1=/tmp/zoptparse.XXXX
- ztempfile tmp1 "label # evaluates tmp1=/tmp/label.XXXX
+ ztempfile tmp1 "label" # evaluates tmp1=/tmp/label.XXXX
+ ztempfile tmp1 "label" "/dev/shm" # evaluates tmp1=/dev/shm/label.XXXX
  ztempdir tmp2 "label" # evaluates tmp2=/tmp/label.XXXX
  pushd $tmp2
  
