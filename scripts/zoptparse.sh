@@ -195,7 +195,7 @@ function zoptparse()
         case "${optchar}" in
             -)
                 val="${OPTARG#*=}"
-                opt="${OPTARG%=*}"
+                opt="${OPTARG%%=*}"
                 opt="${opt//-/_}"
                 if [ "x$opt" = "xhelp" ]; then
                     _zhelp 
