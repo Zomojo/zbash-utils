@@ -44,6 +44,8 @@ test "%{buildroot}" != "/" && rm -rf %{buildroot}
 /usr/share/man/man1/*
 
 %changelog
+* Wed Apr 30 2014 Laird Breyer <laird@zomojo.com>
+- correct parsing of options containing equal signs
 * Tue Dec 30 2013 Laird Breyer <laird@zomojo.com>
 - longer error messages in zsandbox
 * Tue Dec 17 2013 Laird Breyer <laird@zomojo.com>
