@@ -77,7 +77,8 @@ function ztempfile()
 {
     [ -n "$1" ]
     local label="${2:-zoptparse}"
-    local prefix="${3:-/tmp}"
+    local prefix="${3:-${TMPDIR:-/tmp}}"
+    [ -d "$prefix" ] || mkdir -p "$prefix" 
     local tmpfile=$(mktemp -q --tmpdir="$prefix" "${label}.XXXXXXXXXX")
     eval "$1=$tmpfile"
     if [ -z "${_zdebug}" ]; then
@@ -92,7 +93,8 @@ function ztempdir()
 {
     [ -n "$1" ]
     local label="${2:-zoptparse}"
-    local prefix="${3:-/tmp}"
+    local prefix="${3:-${TMPDIR:-/tmp}}"
+    [ -d "$prefix" ] || mkdir -p "$prefix" 
     local tmpdir=$(mktemp -d -q --tmpdir="$prefix" "${label}.XXXXXXXXXX")
     eval "$1=$tmpdir"
     if [ -z "${_zdebug}" ]; then
@@ -352,6 +354,10 @@ commands to those arrays if you need to do further processing.
 
 Note B<_zonkill> automatically sends SIGTERM to the current process group, which should
 kill all child processes. This is only called when an interrupt signal is received.
+
+LOCATION OF TEMPFILES: The third optional parameter of B<ztempfile> / B<ztempdir> specifies
+the location of the temporary object. If unspecified, the default will be either
+the value of the environment variable TMPDIR, or "/tmp" if the latter is empty.
 
 =head2 ERRORS/EXCEPTIONS
 
