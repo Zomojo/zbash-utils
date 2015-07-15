@@ -8,7 +8,7 @@ Source: %{name}-%{version}.tgz
 Buildroot: %_tmppath/%{name}-%{version}
 Prefix: /usr
 BuildArch: noarch
-BuildRequires: perl-podlators
+BuildRequires: perl-podlators perl-Exporter
 
 %description
 zbash-utils provides useful functions for bash shell scripts.
