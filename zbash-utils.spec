@@ -45,6 +45,8 @@ test "%{buildroot}" != "/" && rm -rf %{buildroot}
 /usr/share/man/man1/*
 
 %changelog
+* Wed July 15 2105 Geoff Ericksson <geoff@zomojo.com>
+- Add perl-podlators perl-Exporter to the BuildRequires
 * Mon May 12 2014 Laird Breyer <laird@zomojo.com>
 - if $TMPDIR is nonzero, use it as prefix for tempfiles, else use /tmp
 * Wed Apr 30 2014 Laird Breyer <laird@zomojo.com>
