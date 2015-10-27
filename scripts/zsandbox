@@ -21,6 +21,8 @@ zoptional=( \
     "echo-stdout" \
     "random-nice" \
     "fail-if-disk-full-above" \
+    "stdout-copy-path||Writes stdout to this file (can be formatted as warehouse:)"
+    "stderr-copy-path||Writes stdout to this file (can be formatted as warehouse:)"
 )
 _zstrict=0
 
@@ -130,7 +132,24 @@ cmd_path=$(type -p "$cmd")
 printf "%s " "${cmd_path/$local_temp\//}" $@ >zsandbox.cmdline
 printf "\n" >>zsandbox.cmdline
 
-if $random_nice "$cmd_path" $@ >zsandbox.stdout 2>zsandbox.stderr </dev/null ; then
+$random_nice "$cmd_path" $@ >zsandbox.stdout 2>zsandbox.stderr </dev/null
+cmd_ret=$?
+if [[ -n $stdout_copy_path ]]; then
+    if !cluster-write \
+        --remote-path=$stdout_copy_path \
+        --local-path=zsandbox.stdout; then
+        zmessage "cluster-write failed writing stdout to: %s" "$stdout_copy_path"
+    fi
+fi
+if [[ -n $stderr_copy_path ]]; then
+    if !cluster-write \
+        --remote-path=$stderr_copy_path \
+        --local-path=zsandbox.stderr; then
+        zmessage "cluster-write failed writing stderr to: %s" "$stderr_copy_path"
+    fi
+fi
+
+if [[ $cmd_ret -eq 0 ]]; then
     [ -n "$echo_stdout" ] && cat zsandbox.stdout
     exit 0
 else
