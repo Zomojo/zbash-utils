@@ -62,6 +62,12 @@ while true; do
         --fail-if-disk-full-above*)
             shift
             ;;
+        --stdout-copy-path*)
+            shift
+            ;;
+        --stderr-copy-path*)
+            shift
+            ;;
         *) break ;; # unrecognized, must be the command
     esac
 done
@@ -132,17 +138,23 @@ cmd_path=$(type -p "$cmd")
 printf "%s " "${cmd_path/$local_temp\//}" $@ >zsandbox.cmdline
 printf "\n" >>zsandbox.cmdline
 
-$random_nice "$cmd_path" $@ >zsandbox.stdout 2>zsandbox.stderr </dev/null
-cmd_ret=$?
+# Run the command, recording if it was successful. Afterwards we'll optionall write
+# stdout and stderr to a remote location
+if $random_nice "$cmd_path" $@ >zsandbox.stdout 2>zsandbox.stderr </dev/null; then
+    cmd_ret=0
+else
+    cmd_ret=1
+fi
+
 if [[ -n $stdout_copy_path ]]; then
-    if !cluster-write \
+    if ! /usr/bin/cluster-write \
         --remote-path=$stdout_copy_path \
         --local-path=zsandbox.stdout; then
         zmessage "cluster-write failed writing stdout to: %s" "$stdout_copy_path"
     fi
 fi
 if [[ -n $stderr_copy_path ]]; then
-    if !cluster-write \
+    if ! /usr/bin/cluster-write \
         --remote-path=$stderr_copy_path \
         --local-path=zsandbox.stderr; then
         zmessage "cluster-write failed writing stderr to: %s" "$stderr_copy_path"

@@ -1,7 +1,6 @@
 #!/bin/bash
 
-script_dir=$(dirname $(readlink -f $0))
-source $script_dir/zoptparse.sh
+source "/usr/bin/zoptparse.sh"
 # no set-e
 
 function log()
