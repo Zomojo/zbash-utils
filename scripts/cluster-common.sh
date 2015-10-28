@@ -50,6 +50,32 @@ function fix_forward_slash_for_regex()
     echo $1 | sed 's/\//\\\//g'
 }
 
+: <<=cut
+=pod
 
+=head1 NAME
 
+    cluster-common.sh - zomojo cluster logging tools
+
+=head1 SYNOPSIS
+
+    source '/usr/bin/cluster-common.sh'
+    
+=head1 DESCRIPTION
+
+Testing
+
+=head2 ZREQUIRED
+
+Testing
+
+=head2 ZOPTIONAL
+
+Testing
+
+=head1 SEE ALSO
+
+Testing
+
+=cut
 
