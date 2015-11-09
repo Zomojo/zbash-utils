@@ -4,6 +4,7 @@
 
 zrequired=()
 zoptional=()
+zargs=()
 _zstrict=1
 _zonexit=()
 _zonkill=()
@@ -267,6 +268,14 @@ function zoptparse()
         fi
     done
 
+    # finally  get zargs
+    shift $(($OPTIND - 1))
+    while test $# -gt 0; do
+        zargs[${#zargs[@]}]=$1
+        shift
+    done
+
+
     return 0
 }
 
@@ -291,6 +300,8 @@ export zrequired zoptional _zstrict _zonexit _zonkill
 
     zoptparse "$@" || exit 1
 
+    total_zargs=${#zargs[@]}
+
 =head1 DESCRIPTION
 
 The function B<zoptparse> converts any option of the form --foo=bar
@@ -304,10 +315,10 @@ to comply with bash naming requirements for variables.
 Note that options arguments MUST be separated from the option name by
 an equal sign, while a space is not supported. 
 
-The first non-option argument marks the end of option processing.
-Spaces inside an option
-argument are supported IF quoted properly, otherwise option processing
-will likely stop.
+The first non-option argument marks the end of option processing. Non-
+option arguments are stored in the array B<zargs>.
+Spaces inside an option argument are supported IF quoted properly, 
+otherwise option processing will likely stop.
 
 Note also that the expression "$@" will properly quote strings with
 embedded spaces.

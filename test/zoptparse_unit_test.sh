@@ -11,7 +11,7 @@ fi
 [ -e "$1" ];
 
 tmp=$(mktemp -d -q --tmpdir="/tmp" "zbash-unit-test.XXXXXXXX")
-trap "rm -rf $tmp" EXIT
+#trap "rm -rf $tmp" EXIT
 
 if ! pushd "$tmp" >/dev/null ; then
     echo "couldn't cd into temporary directory [$tmp]"
@@ -249,6 +249,38 @@ exit 0
 
 ./test_unsupported0 --foo bar 2>&1 | grep -q 'spaces'
 _unsupported0
+
+# zargs
+cat <<_zargs > test_zargs0
+#!/bin/bash
+source "$1"
+
+zrequired=( )
+zoptional=( )
+zoptparse "\$@" || exit 1
+
+exit 0
+
+[ "\${zargs[0]}" = "one" ] && [ "\${zargs[1]}" = "two" ] && [ "\${zargs[2]}" = "three" ] || exit 1
+
+./test_zargs0 one two three 2>&1
+_zargs
+
+# zargs with an optional
+cat <<_zargs1 > test_zargs1
+#!/bin/bash
+source "$1"
+
+zoptional=( "date|20120101" )
+zoptparse "\$@" || exit 1
+
+[ "\$date" = "20120000" ] && [ "\${zargs[0]}" = "one" ] && [ "\${zargs[1]}" = "two" ] && [ "\${zargs[2]}" = "three" ] || exit 1
+exit 0
+
+./test_zargs1 --date=20120000 one two three 2>&1
+_zargs1
+
+
 
 
 # now each unit test is run in its own subshell
