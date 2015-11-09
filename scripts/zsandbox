@@ -7,7 +7,8 @@
 #
 # zsandbox [--install-package=warehouse:/tmp/blah.tar.gz] command [args]
 
-source "/usr/bin/zoptparse.sh"
+script_dir=$(dirname $(readlink -f $0))
+source $script_dir/zoptparse.sh
 
 zrequired=()
 zoptional=( \

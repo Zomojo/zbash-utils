@@ -1,8 +1,8 @@
 #!/bin/bash
 script_dir=$(dirname $(readlink -f $0))
 source $script_dir/zoptparse.sh
-set -e
 source $script_dir/cluster-common.sh
+set -e
 PATH=$script_dir:$PATH
 
 zrequired=("remote-path" "local-path")

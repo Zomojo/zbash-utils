@@ -11,7 +11,7 @@ fi
 [ -e "$1" ];
 
 tmp=$(mktemp -d -q --tmpdir="/tmp" "zbash-unit-test.XXXXXXXX")
-#trap "rm -rf $tmp" EXIT
+trap "rm -rf $tmp" EXIT
 
 if ! pushd "$tmp" >/dev/null ; then
     echo "couldn't cd into temporary directory [$tmp]"

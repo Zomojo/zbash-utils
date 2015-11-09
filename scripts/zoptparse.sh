@@ -5,6 +5,7 @@
 zrequired=()
 zoptional=()
 zargs=()
+zargs_help=
 _zstrict=1
 _zonexit=()
 _zonkill=()
@@ -169,6 +170,11 @@ function _zhelp()
             local desc=$(echo "$v" | cut -s -f3 -d\|)
             zmessage "  %-30s %s" "--$varname arg (=$varvalue)" "$desc"
         done
+    fi
+
+    if [ -n "$zargs_help" ]; then
+        printf "Args will be interpreted as:\n"
+        zmessage "  %s" "$zargs_help"
     fi
 }
 
