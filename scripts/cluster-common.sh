@@ -1,7 +1,6 @@
 #!/bin/bash
 
 script_dir=$(dirname $(readlink -f ${BASH_SOURCE[0]}))
-echo $script_dir
 source $script_dir/zoptparse.sh
 
 # no set-e
