@@ -18,9 +18,8 @@ case "$remote_path" in
         retry=5
         hide_error="2>/dev/null"
         while [ $retry -gt 0 ]; do
-            cached_path=$(nfleval cache fetch "$rpath" 2>/dev/null || true)
+            cached_path=$(nfleval cache2 fetch "$rpath" 2>/dev/null || true)
             if [ -n "$cached_path" ]; then
-                cached_path="${CACHE_LOCAL:-/data/work/zlab/md_cache2}/$cached_path"
                 if [ -e "$cached_path" ]; then
                     break;
                 fi
