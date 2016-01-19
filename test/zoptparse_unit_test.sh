@@ -233,7 +233,7 @@ zoptparse "\$@" || exit 1
 
 exit 0
 
-./test_complex1 --date=20130415 bar --two=3 --time='2:30 pm' 2>&1 | grep -q 'time'
+./test_complex1 --date=20130415 bar --two=3 --time='2:30 pm' 
 _complex1
 
 # --foo bar is not supported, unfortunately
@@ -277,7 +277,7 @@ zoptparse "\$@" || exit 1
 [ "\$date" = "20120000" ] && [ "\${zargs[0]}" = "one" ] && [ "\${zargs[1]}" = "two" ] && [ "\${zargs[2]}" = "three" ] || exit 1
 exit 0
 
-./test_zargs1 --date=20120000 one two three 2>&1
+./test_zargs1 one --date=20120000 two three 2>&1
 _zargs1
 
 

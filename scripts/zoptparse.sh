@@ -199,60 +199,67 @@ function zoptparse()
 
     unset -v optchar opt val OPTIND OPTARG
 
-   # create and initialize foo=bar whenever we see --foo=bar 
-    while getopts ":-:" optchar; do
-        case "${optchar}" in
-            -)
-                val="${OPTARG#*=}"
-                opt="${OPTARG%%=*}"
-                opt="${opt//-/_}"
-                if [ "x$opt" = "xhelp" ]; then
-                    _zhelp 
-                    if [ "x${_zstrict}" = "x1" ]; then
-                        exit 0
-                    fi
-                    eval "help=1"
-                    return 0 # we don't exit, let user handle this
-                fi
-                if [ "x$opt" = "xman" ]; then
-                    zprerequisite pod2man
-                    local b="Zomojo User Script"
-                    pod2man --center="$b" --release="$b" $(readlink -f $0) | nroff -man | ${PAGER:-cat}
+    for var in "$@"
+    do
+        case "${var}" in
+        --*) 
+            # create and initialize foo=bar whenever we see --foo=bar 
+            var="${var:2}"
+            val="${var#*=}"
+            opt="${var%%=*}"
+            opt="${opt//-/_}"
+            echo $val $opt >> /dev/null
+            if [ "x$opt" = "xhelp" ]; then
+                _zhelp 
+                if [ "x${_zstrict}" = "x1" ]; then
                     exit 0
                 fi
-                if [ "x$opt" = "x$val" ]; then
-                    for w in "${zrequired[@]}"; do
-                        w=$(echo $w | cut -f1 -d\|)
-                        if [ "x$opt" = "x$w" ]; then
-                            zmessage "$0 accepts only options of the form --xxx=yyy (no spaces in yyy)"
-                            return 1
-                        fi
-                    done
-                    # if we're here then opt is an optional var whose
-                    # value wasn't set. This is ok, but make sure dashes
-                    #  are converted to underscores
-                    eval "${val}='$opt'"
-                fi
-                # now eval the var
-                # 1) if  zrequired or zoptional always eval
-                # 2) if _zstrict=1 and not zrequired or zoptional, fail
-                # 3) if _zstrict=2 and not zrequired or zoptional, eval anyway
-                # 4) if _zstrict=0 and not zrequired or zoptional, silently ignore
-                if [ "x$opt" = "xdebug" ]; then
-                    _zdebug="debug"
-                elif _zexp "${zrequired[@]}" || _zexp "${zoptional[@]}" ; then
-                    eval "${opt}='${val}'"
-                elif [ "x${_zstrict}" = "x1" ]; then
-                    zmessage "unrecognized option --${opt}"
-                    return 1
-                elif [ "x${_zstrict}" = "x2" ]; then
-                    eval "${opt}='${val}'"
-                fi
-                ;;
-            *)
-                zmessage "$0 accepts only options of the form --xxx=yyy (no spaces in yyy)" 
+                eval "help=1"
+                return 0 # we don't exit, let user handle this
+            fi
+            if [ "x$opt" = "xman" ]; then
+                zprerequisite pod2man
+                local b="Zomojo User Script"
+                pod2man --center="$b" --release="$b" $(readlink -f $0) | nroff -man | ${PAGER:-cat}
+                exit 0
+            fi
+            if [ "x$opt" = "x$val" ]; then
+                for w in "${zrequired[@]}"; do
+                    w=$(echo $w | cut -f1 -d\|)
+                    if [ "x$opt" = "x$w" ]; then
+                        zmessage "$0 accepts only options of the form --xxx=yyy (no spaces in yyy)"
+                        return 1
+                    fi
+                done
+                # if we're here then opt is an optional var whose
+                # value wasn't set. This is ok, but make sure dashes
+                #  are converted to underscores
+                eval "${val}='$opt'"
+            fi
+            # now eval the var
+            # 1) if  zrequired or zoptional always eval
+            # 2) if _zstrict=1 and not zrequired or zoptional, fail
+            # 3) if _zstrict=2 and not zrequired or zoptional, eval anyway
+            # 4) if _zstrict=0 and not zrequired or zoptional, silently ignore
+            if [ "x$opt" = "xdebug" ]; then
+                _zdebug="debug"
+            elif _zexp "${zrequired[@]}" || _zexp "${zoptional[@]}" ; then
+                eval "${opt}='${val}'"
+            elif [ "x${_zstrict}" = "x1" ]; then
+                zmessage "unrecognized option --${opt}"
                 return 1
-                ;;
+            elif [ "x${_zstrict}" = "x2" ]; then
+                eval "${opt}='${val}'"
+            fi
+            ;;
+        -*) 
+            zmessage "$0 accepts only options of the form --xxx=yyy (no spaces in yyy)" 
+            return 1
+            ;;
+        *) 
+            # treat as args
+            zargs[${#zargs[@]}]="$var"
+            ;;
         esac
     done
 
@@ -273,15 +280,7 @@ function zoptparse()
             eval "${varname}='${varvalue}'"
         fi
     done
-
-    # finally  get zargs
-    shift $(($OPTIND - 1))
-    while test $# -gt 0; do
-        zargs[${#zargs[@]}]=$1
-        shift
-    done
-
-
+    
     return 0
 }
 
