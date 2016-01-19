@@ -1,0 +1,54 @@
+#!/bin/bash
+source "/usr/bin/zoptparse.sh"
+set -e
+script_dir=$(dirname $(readlink -f $0))
+
+zrequired=()
+zoptional=("sep|=|separator for substition arguments" \
+           "input||input is a file - mutually exclusive of text" \
+           "text||literal text - mutually exclusive of input" \
+           "output||Supply a file or leave blank to have output written to stdout" \
+           "sed-sep|^|sed separator")
+zargs_help="Supply extras args in the from TEMPLATE=substitution TEMPLATE2=substitution2. Example command line: $0 --input=DATE/TEST/bar DATE=20151301 TEST=foo"
+zoptparse "$@" || exit 1
+
+
+if [[ -z $input ]] && [[ -z $text ]]; then
+    _zhelp
+    echo; echo "error: supply input or text"
+    exit 1
+fi
+
+if [[ ! -z $input ]] && [[ ! -z $text ]]; then
+    _zhelp
+    echo; echo "error: supply input or text but not both"
+    exit 1
+fi
+
+
+sed_filt=
+for((i=0; i<${#zargs[@]}; i++));
+do
+    filt=${zargs[$i]}
+    #left=${filt%%$sep*}
+    #right=${filt##*$sep}
+    left=$(echo $filt | awk -F$sep '{print $1}')
+    right=$(echo $filt | awk -F$sep '{print $2}')
+    if [[ ! -n $left ]] || [[ ! -n $right ]]; then zerror "could not interpret arg: %s" $filt; fi
+    
+    sed_filt="$sed_filt s${sed_sep}${left}${sed_sep}${right}${sed_sep}g;"
+done
+
+sed_part=""
+if [[ -n $sed_filt ]]; then sed_part="| sed \"$sed_filt\""; fi
+output_part=""
+if [[ ! -z $output ]]; then output_part="> $output";  fi
+
+if [[ ! -z $input ]]; then
+    # using a cat intentionally (because of the sed part)
+    cmd="cat $input $sed_part $output_part"
+    #eval sed "$sed_filt" $input $output_part
+else
+    cmd="echo $text $sed_part $output_part"
+fi
+eval "$cmd"
