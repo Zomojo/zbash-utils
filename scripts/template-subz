@@ -52,3 +52,61 @@ else
     cmd="echo $text $sed_part $output_part"
 fi
 eval "$cmd"
+
+: <<=cut
+=pod
+
+=head1 NAME
+
+    template-subz - do template substitution on file content or given text
+
+=head1 SYNOPSIS
+
+    template-subz [--option=VALUE]... [args]...
+
+=head1 DESCRIPTION
+
+The B<template-subz> tool does template substitution. Pass it a file (--input) or literal text (--text) and define template substitutions using args.
+
+For e.g.
+
+template-subz --text=FOO/BAR FOO=top_dir BAR=file
+
+template-subz --input=/tmp/afile_that_exists --output=/tmp/substituted_file FOO=top_dir BAR=file
+
+=head1 OPTIONS
+
+=over 4
+
+=item --input=INPUT
+
+A file type input - will be cat'd. Mutually exclusive of the --text argument.
+
+=item --text=TEXT
+
+Textual input. Mutually exclusive of the --input argument.
+
+=item --sep=SEP
+
+The separator used for splitting template strings supplied via args. Default is =.
+
+=item --sed-sep=SED_SEP
+
+The separator used in the sed regex. Default is ^.
+
+
+=item --output=OUTPUT
+
+If set, the output will be redirected to this file. Otherwise by output is written to std-out.
+
+=back
+
+=head1 RETURN VALUE
+
+B<template-zubz> returns 1 if it fails for any reason.
+
+=head1 SEE ALSO
+
+zoptparse.sh
+
+=cut
