@@ -253,8 +253,11 @@ function zoptparse()
             fi
             ;;
         -*) 
-            zmessage "$0 accepts only options of the form --xxx=yyy (no spaces in yyy)" 
-            return 1
+            if [[ $_zstrict -eq 1 ]]; then
+                # zd-exec, zsandbox - what if the subcommand has something in it that uses a single hyphen? (TODO think)
+                zmessage "$0 accepts only options of the form --xxx=yyy (no spaces in yyy)" 
+                return 1
+            fi
             ;;
         *) 
             # treat as args
