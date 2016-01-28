@@ -147,17 +147,17 @@ else
 fi
 
 if [[ -n $stdout_copy_path ]]; then
-    if ! /usr/bin/cluster-write \
+    if ! /usr/bin/zwrite \
         --remote-path=$stdout_copy_path \
         --local-path=zsandbox.stdout; then
-        zmessage "cluster-write failed writing stdout to: %s" "$stdout_copy_path"
+        zmessage "zwrite failed writing stdout to: %s" "$stdout_copy_path"
     fi
 fi
 if [[ -n $stderr_copy_path ]]; then
-    if ! /usr/bin/cluster-write \
+    if ! /usr/bin/zwrite \
         --remote-path=$stderr_copy_path \
         --local-path=zsandbox.stderr; then
-        zmessage "cluster-write failed writing stderr to: %s" "$stderr_copy_path"
+        zmessage "zwrite failed writing stderr to: %s" "$stderr_copy_path"
     fi
 fi
 

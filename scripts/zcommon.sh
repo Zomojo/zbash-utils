@@ -61,7 +61,7 @@ function fix_forward_slash_for_regex()
 
 =head1 SYNOPSIS
 
-    source '/usr/bin/cluster-common.sh'
+    source '/usr/bin/zcommon.sh'
     
 =head1 DESCRIPTION
 
