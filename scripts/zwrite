@@ -1,0 +1,90 @@
+#!/bin/bash
+script_dir=$(dirname $(readlink -f $0))
+source /usr/bin/zoptparse.sh
+source /usr/bin/zcommon.sh
+set -e
+PATH=$script_dir:$PATH
+
+zrequired=("remote-path" "local-path")
+zoptional=("print")
+
+zoptparse $@ || exit 1
+
+if [ ! -f "$local_path" ]; then
+    zmessage "failure: file '$local_path' doesn't exist"
+    exit 1
+fi
+
+case $remote_path in
+    warehouse:*)
+        retry=5
+        while [ $retry -gt 0 ]; do
+            warehouse_path=${remote_path#*:}
+            if nfleval dput $warehouse_path $local_path ; then
+                break;
+            fi
+            sleep $(echo 2 + $RANDOM / 32767 | bc -l)s
+            retry=$((retry - 1))
+        done
+
+        if [[ $retry -eq 0 ]]; then
+            zerror "failure: warehouse is not responding"
+        fi
+        ;;
+    localhost:*)
+        # write always copies the file to the repository, as the latter is 
+        # authoritative. 
+        nfleval mkdir -p $(dirname ${remote_path#*:}) # make sure directories we need exist
+        nfleval chmod ugo+rwx $(dirname ${remote_path#*:}) || true # need permissions for nobodies
+        nfleval cp -f $local_path ${remote_path#*:}
+        ;;
+    *:*) # other hosts
+        host=${remote_path%:*}
+        path=$(dirname ${remote_path#*:})
+        nfleval ssh $host "mkdir -p $path" && scp $local_path $remote_path
+        ;;
+    *)
+        zerror "failure: unsupported remote path $remote_path"
+        ;;
+esac
+
+
+if [ -n "$print" ]; then
+    printf "%s" "$remote_path"
+fi
+
+exit 0
+
+: <<=cut
+=pod
+
+=head1 NAME
+
+    zwrite - copy a local file remotely
+
+=head1 SYNOPSIS
+
+    zwrite OPTIONS --local-path=FSPATH --remote-path=[localhost|warehouse]:PATH
+
+=head1 DESCRIPTION
+
+This command copies the file specified by FSPATH to either localhost
+or the warehouse. 
+
+=head1 RETURN VALUE
+
+Returns 0 on success, 1 on failure.
+
+=head1 OPTIONS
+
+=over 4
+
+=item --print
+
+Print the remote path of the file.
+
+=back
+
+=head1 SEE ALSO
+
+=cut
