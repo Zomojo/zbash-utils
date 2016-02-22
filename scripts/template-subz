@@ -36,7 +36,7 @@ do
     right=$(echo $filt | awk -F$sep '{print $2}')
     if [[ ! -n $left ]] || [[ ! -n $right ]]; then zerror "could not interpret arg: %s" $filt; fi
     
-    sed_filt="$sed_filt s${sed_sep}${left}${sed_sep}${right}${sed_sep}g;"
+    sed_filt="$sed_filt s${sed_sep}"${left}"${sed_sep}"${right}"${sed_sep}g;"
 done
 
 sed_part=""
