@@ -54,7 +54,7 @@ test "%{buildroot}" != "/" && rm -rf %{buildroot}
 - if $TMPDIR is nonzero, use it as prefix for tempfiles, else use /tmp
 * Wed Apr 30 2014 Laird Breyer <laird@zomojo.com>
 - correct parsing of options containing equal signs
-* Tue Dec 30 2013 Laird Breyer <laird@zomojo.com>
+* Mon Dec 30 2013 Laird Breyer <laird@zomojo.com>
 - longer error messages in zsandbox
 * Tue Dec 17 2013 Laird Breyer <laird@zomojo.com>
 - changes to zsandbox implementation
@@ -64,7 +64,7 @@ test "%{buildroot}" != "/" && rm -rf %{buildroot}
 - Added zerror, which is like zmessage but returns 1 (for exiting scripts)
 * Thu Sep 19 2013 Laird Breyer <laird@zomojo.com>
 - Added ztempfile and ztempdir commands, also child process cleanup
-* Fri Jan 1 2013 Laird Breyer <laird@zomojo.com>
+* Tue Jan 1 2013 Laird Breyer <laird@zomojo.com>
 - Added --use-dir to zsandbox
 * Thu Dec 6 2012 Laird Breyer <laird@zomojo.com>
 - Added exception handling in zoptparse.sh
