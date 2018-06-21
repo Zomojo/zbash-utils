@@ -86,7 +86,7 @@ fi
 if [ -n "${working_dir:-$use_dir}" ]; then
     mkdir -p "${working_dir:-$use_dir}" && local_temp="${working_dir:-$use_dir}"
 else
-    ztempdir local_temp "zsandbox-$tag"
+    ztempdir local_temp "zsandbox-$tag" "$temp_dir"
 fi
 
 [ -d "$local_temp" ] || zerror "failure: cannot create temporary directory"
