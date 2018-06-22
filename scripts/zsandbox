@@ -1,11 +1,11 @@
 #!/bin/bash
 # generic sandbox command runner.
 #
-# The script zsandbox executes a single command on the localhost
-# from within a sandbox in a temporary directory. It can optionally
+# The script zsandbox executes a semi colon separated list of commands
+# on the localhost  from within a sandbox in a temporary directory. It can optionally
 # install a package of files before executing the command.
 #
-# zsandbox [--install-package=warehouse:/tmp/blah.tar.gz] command [args]
+# zsandbox [--install-package=warehouse:/tmp/blah.tar.gz] command_string
 
 script_dir=$(dirname $(readlink -f $0))
 source $script_dir/zoptparse.sh
@@ -73,10 +73,10 @@ while true; do
     esac
 done
 
-cmd="$1"
-shift
+# split the cmd string by ';' ... That way we can sandbox a chain of commands
+IFS=';' read -r -a cmd_array <<< "$@"
 
-[ -n "$cmd" ] || zerror "failure: usage: zsandbox [--options] command [args]"
+[ ${#cmd_array[@]} -gt 0 ] || zerror "failure: usage: zsandbox [--options] command string"
 
 if [ -n "$fail_if_disk_full_above" ]; then
     DU=$(df -lP "$temp_dir" | grep ^/ | tr -s ' ' | cut -d' ' -f5 | sed 's/%//')
@@ -131,20 +131,25 @@ fi
 # parallel process performance
 [ -n "$random_nice" ] && random_nice="nice -n $[ $RANDOM % 16]"
 
-cmd_path=$(type -p "$cmd")
 
-[ -x "$cmd_path" ] || zerror "failure: %s is not an executable file" "$cmd"
+for cmd_inst in "${cmd_array[@]}"
+do
+    executable=$(echo $cmd_inst | awk '{print $1}')
+    cmd_path=$(type -p "$executable")
+    [ -x "$cmd_path" ] || zerror "failure: %s is not an executable file" "$executable"
 
-printf "%s " "${cmd_path/$local_temp\//}" $@ >zsandbox.cmdline
-printf "\n" >>zsandbox.cmdline
+    printf "%s " "${cmd_inst/$local_temp\//}" $@ >zsandbox.cmdline
+    printf "\n" >>zsandbox.cmdline
 
-# Run the command, recording if it was successful. Afterwards we'll optionall write
-# stdout and stderr to a remote location
-if $random_nice "$cmd_path" $@ >zsandbox.stdout 2>zsandbox.stderr </dev/null; then
-    cmd_ret=0
-else
-    cmd_ret=1
-fi
+    # Run the command, recording if it was successful. Afterwards we'll optionall write
+    # stdout and stderr to a remote location
+    if $random_nice $cmd_inst >zsandbox.stdout 2>zsandbox.stderr </dev/null; then
+        cmd_ret=0
+    else
+        cmd_ret=1
+        break
+    fi
+done
 
 if [[ -n $stdout_copy_path ]]; then
     if ! /usr/bin/zwrite \
@@ -195,7 +200,7 @@ exit $rv
 
 =head1 DESCRIPTION
 
-The B<zsandbox> script executes a single command with optional arguments
+The B<zsandbox> script executes a semi colon separated list of command with optional arguments
 from inside a temporary directory on localhost. 
 
 Note: the zsandbox options must occur BEFORE the command. After the first unrecognized
