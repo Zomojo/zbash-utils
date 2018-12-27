@@ -41,6 +41,18 @@ function zerror()
     return 1 # triggers exit when set -e 
 }
 
+# Figure out what directory the executing script lives in
+function zscript_dir () {
+     SOURCE="${BASH_SOURCE[0]}"
+     while [ -h "$SOURCE" ]; do
+          DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+          SOURCE="$( readlink "$SOURCE" )"
+          [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+     done
+     $( cd -P "$( dirname "$SOURCE" )" )
+     pwd
+}
+
 # use like zrecord cmd.txt stdout.txt "some command"
 # it records the command string into cmd.txt and the output into stdout.txt
 # while the command's stderr still gets printed as usual
