@@ -46,6 +46,8 @@ test "%{buildroot}" != "/" && rm -rf %{buildroot}
 %{_bindir}/template-subz
 
 %changelog
+* Mon Dec 31 2018 Geoff Ericksson <geoff.ericksson@zomojo.com>
+- Added zscript_dir  to reliably find the directory that the executing script lives in
 * Tue Jul 25 2017 Geoff Ericksson <geoff@zomojo.com>
 - Add licence and readme
 * Wed Jul 15 2015 Geoff Ericksson <geoff@zomojo.com>
