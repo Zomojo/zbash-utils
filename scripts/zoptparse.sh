@@ -96,7 +96,7 @@ function ztempfile()
     local tmpfile=$(mktemp -q --tmpdir="$prefix" "${label}.XXXXXXXXXX")
     eval "$1=$tmpfile"
     if [ -z "${_zdebug}" ]; then
-        eval " _zonexit+=( \"[ -f '$tmpfile' ] && rm -f '$tmpfile'\" ) "
+        eval " _zonexit+=( \"[ -f '$tmpfile' ] && rm -f '$tmpfile' || true\" ) "
     else
         zmessage "$tmpfile" # leave file around
     fi
